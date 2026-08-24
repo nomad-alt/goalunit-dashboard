@@ -3,9 +3,10 @@ import type { ClubRecord } from "../data/goalunitData";
 type TransferKpiChartProps = {
   clubs: ClubRecord[]
   selectedClubName: string
+  onSelectClub: (clubId: number) => void
 }
 
-export function TransferKpiChart({ clubs, selectedClubName }: TransferKpiChartProps) {
+export function TransferKpiChart({ clubs, selectedClubName, onSelectClub }: TransferKpiChartProps) {
   const chartWidth = 560
   const chartHeight = 220
   const chartPadding = { top: 18, right: 20, bottom: 42, left: 42 }
@@ -36,7 +37,7 @@ export function TransferKpiChart({ clubs, selectedClubName }: TransferKpiChartPr
         {points.map(({ club, x, y }) => {
           const isSelected = club.clubName === selectedClubName
           return (
-            <g key={club.clubName}>
+            <g key={club.clubName} className="chart-selectable" role="button" tabIndex={0} aria-label={`Select ${club.clubName}`} onClick={() => onSelectClub(club.clubId)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelectClub(club.clubId) }}>
               <circle className={isSelected ? "chart-point chart-point--selected" : "chart-point"} cx={x} cy={y} r={isSelected ? 6 : 4} />
               <text className="chart-value" x={x} y={y - 13} textAnchor="middle">{club.transferKpi}</text>
               <text className="chart-club-label" x={x} y={chartHeight - 15} textAnchor="middle">{club.clubName === "Manchester United" ? "Man Utd" : club.clubName === "Manchester City" ? "Man City" : club.clubName}</text>

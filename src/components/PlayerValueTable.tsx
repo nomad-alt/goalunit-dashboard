@@ -3,10 +3,12 @@ import type { PlayerRecord } from "../data/goalunitData";
 type PlayerValueTableProps = {
   players: PlayerRecord[]
   formatValue: (value: number) => string
+  showAll: boolean
 }
 
-export function PlayerValueTable({ players, formatValue }: PlayerValueTableProps) {
+export function PlayerValueTable({ players, formatValue, showAll }: PlayerValueTableProps) {
   const rankedPlayers = [...players].sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)
+  const visiblePlayers = showAll ? rankedPlayers : rankedPlayers.slice(0, 5)
 
   return (
     <div className="table-wrap">
@@ -16,7 +18,7 @@ export function PlayerValueTable({ players, formatValue }: PlayerValueTableProps
           <tr><th scope="col">Player</th><th scope="col">Fair price</th><th scope="col">Contract</th></tr>
         </thead>
         <tbody>
-          {rankedPlayers.map((player, index) => (
+          {visiblePlayers.length === 0 ? <tr><td colSpan={3} className="table-empty">No player records for this club and season.</td></tr> : visiblePlayers.map((player, index) => (
             <tr key={player.playerName}>
               <td><span className="player-rank">{String(index + 1).padStart(2, "0")}</span><strong>{player.playerName}</strong></td>
               <td className="player-price">{formatValue(player.fairPrice)}</td>

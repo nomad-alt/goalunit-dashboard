@@ -18,6 +18,8 @@ import { TransferKpiChart } from "./components/TransferKpiChart";
 function App() {
   const [selectedClubId, setSelectedClubId] = useState(selectedClub.clubId);
   const [selectedSeason, setSelectedSeason] = useState(selectedClub.seasonName);
+  const [showAllPlayers, setShowAllPlayers] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const seasonClubs = clubs.filter(
     (club) => club.seasonName === selectedSeason,
   );
@@ -53,6 +55,12 @@ function App() {
       (club) => club.seasonName === seasonName,
     );
     if (firstClubInSeason) setSelectedClubId(firstClubInSeason.clubId);
+    setShowAllPlayers(false);
+  };
+
+  const handleClubChange = (clubId: number) => {
+    setSelectedClubId(clubId);
+    setShowAllPlayers(false);
   };
 
   return (
@@ -100,7 +108,7 @@ function App() {
               <select
                 value={activeClub.clubId}
                 onChange={(event) =>
-                  setSelectedClubId(Number(event.target.value))
+                  handleClubChange(Number(event.target.value))
                 }
               >
                 {seasonClubs.map((club) => (
@@ -123,6 +131,9 @@ function App() {
                 ))}
               </select>
             </label>
+            <button className="compare-action" type="button" onClick={() => document.getElementById("market-comparison")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+              <span aria-hidden="true">↗</span> Compare clubs
+            </button>
           </div>
         </section>
 
@@ -190,7 +201,7 @@ function App() {
         </section>
 
         <section className="visual-grid" aria-label="Club and player analysis">
-          <article className="panel chart-panel">
+          <article className="panel chart-panel" id="market-comparison">
             <div className="panel-header">
               <div>
                 <p className="eyebrow">Market comparison</p>
@@ -203,6 +214,7 @@ function App() {
             <TransferKpiChart
               clubs={seasonClubs.length ? seasonClubs : clubs}
               selectedClubName={activeClub.clubName}
+              onSelectClub={handleClubChange}
             />
           </article>
           <article className="panel table-panel">
@@ -211,13 +223,20 @@ function App() {
                 <p className="eyebrow">Selected club squad</p>
                 <h2>Fair price leaders</h2>
               </div>
-              <button className="text-button" type="button">
-                View all <span aria-hidden="true">→</span>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => setShowAllPlayers((isVisible) => !isVisible)}
+                aria-expanded={showAllPlayers}
+              >
+                {showAllPlayers ? "Show less" : "View all"}{" "}
+                <span aria-hidden="true">{showAllPlayers ? "↑" : "→"}</span>
               </button>
             </div>
             <PlayerValueTable
               players={activePlayers}
               formatValue={formatMillions}
+              showAll={showAllPlayers}
             />
           </article>
         </section>
@@ -229,10 +248,23 @@ function App() {
                 <p className="eyebrow">Squad structure</p>
                 <h2>Squad indicators</h2>
               </div>
-              <button className="text-button" type="button">
-                View report <span aria-hidden="true">→</span>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => setShowReport((isVisible) => !isVisible)}
+                aria-expanded={showReport}
+              >
+                {showReport ? "Hide report" : "View report"}{" "}
+                <span aria-hidden="true">{showReport ? "↑" : "→"}</span>
               </button>
             </div>
+            {showReport && (
+              <p className="report-note">
+                Transfer KPI is compared with clubs in the selected season.
+                Player concentration uses the top three fair prices in the
+                selected club sample.
+              </p>
+            )}
             <div className="goal-list">
               <div className="goal-row">
                 <span className="goal-dot goal-dot--green"></span>

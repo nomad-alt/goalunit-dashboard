@@ -1,20 +1,14 @@
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
-
-Currently, two official plugins are available:
-
-
- # Goalunit Club Analysis
+# Goalunit Club Analysis
 
 A football club analytics dashboard built with React, TypeScript, and Vite using a sample of Goalunit club and player datasets.
 
 The dashboard demonstrates a small data-to-interface workflow for recruitment and club analysis:
 
 - Compare Transfer KPI values across Premier League clubs.
-- Rank players by estimated fair price.
+- Switch between clubs and seasons with recalculated dashboard values.
+- Rank each selected club's players by estimated fair price.
 - Display contract expiration years alongside player values.
-- Derive a main insight by comparing a selected club with the dataset average.
+- Derive insights from KPI extremes, fair-price concentration, contract risk, revenue efficiency, and year-over-year movement.
 - Surface club value, revenue, squad structure, and recruitment signals in a responsive dashboard.
 
 ## Tech Stack
@@ -50,6 +44,7 @@ The current prototype uses a compact, typed dataset in [`src/data/goalunitData.t
 - Total assets and revenue
 - Player fair price
 - Contract expiration
+- Club-to-player mapping for the current club-specific sample
 
 The original CSV files are not loaded directly by the browser. In a production version, the files could be processed by a Python or Airflow pipeline, stored in PostgreSQL, and exposed to the frontend through an API.
 
@@ -61,7 +56,7 @@ npm run prepare:data -- \
   --players /path/to/players.csv
 ```
 
-This writes `src/data/goalunitData.generated.ts`. Empty CSV values become `null`, numeric fields are converted to numbers, and duplicate player snapshots are reduced to the highest fair-price record for each player and season. The supplied `players.csv` does not include `clubId`, so generated player records retain `clubId: null` until a player-to-club join is provided.
+This writes `src/data/goalunitData.generated.ts`. Empty CSV values become `null`, numeric fields are converted to numbers, and duplicate player snapshots are reduced to the highest fair-price record for each player and season. The supplied `players.csv` does not include `clubId`, so the preparation output retains `clubId: null`; the current dashboard sample uses an explicit club mapping for its selected-club view.
 
 ## Project Structure
 
@@ -72,9 +67,14 @@ src/
     TransferKpiChart.tsx
   data/
     goalunitData.ts
-  App.tsx
-  App.css
-  index.css
+    goalunitData.test.ts
+scripts/
+  prepare_data.py
+tests/
+  test_prepare_data.py
+App.tsx
+App.css
+index.css
 ```
 
 ## Validation
@@ -97,6 +97,8 @@ Run the data preparation tests:
 npm test
 ```
 
+The test command runs both the Python preparation tests and the Vitest frontend data-layer tests.
+
 ## Scope
 
-This is a portfolio prototype for exploring Goalunit-style football intelligence. The player sample currently does not include a club ID, so player rankings represent a cross-club market sample rather than a complete club-specific squad valuation.
+This is a portfolio prototype for exploring Goalunit-style football intelligence. The current sample supports club-specific views for the four comparison clubs and includes prior-season club records for year-over-year KPI analysis. Player-to-club relationships should eventually come from a maintained source dataset or backend join rather than manual mapping.
