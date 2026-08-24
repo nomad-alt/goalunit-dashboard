@@ -1,18 +1,58 @@
+import { useState } from "react";
 import "./App.css";
 import {
-  averageTransferKpi,
   clubs,
   formatMillions,
-  mainInsight,
+  getAverageTransferKpi,
+  getClubPlayers,
+  getInsight,
+  getTopPlayer,
   selectedClub,
-  selectedSeasonPlayers,
-  topPlayer,
-  transferKpiDelta,
 } from "./data/goalunitData";
 import { PlayerValueTable } from "./components/PlayerValueTable";
 import { TransferKpiChart } from "./components/TransferKpiChart";
 
 function App() {
+  const [selectedClubId, setSelectedClubId] = useState(selectedClub.clubId);
+  const [selectedSeason, setSelectedSeason] = useState(selectedClub.seasonName);
+  const seasonClubs = clubs.filter(
+    (club) => club.seasonName === selectedSeason,
+  );
+  const activeClub =
+    seasonClubs.find((club) => club.clubId === selectedClubId) ??
+    seasonClubs[0] ??
+    selectedClub;
+  const activePlayers = getClubPlayers(
+    activeClub.clubId,
+    activeClub.seasonName,
+  );
+  const activeTopPlayer = getTopPlayer(activePlayers);
+  const activeAverageKpi = getAverageTransferKpi(
+    seasonClubs.length ? seasonClubs : clubs,
+  );
+  const activeKpiDelta = activeClub.transferKpi - activeAverageKpi;
+  const activeInsight = getInsight(
+    activeClub,
+    seasonClubs.length ? seasonClubs : clubs,
+  );
+  const playersAboveThreshold = activePlayers.filter(
+    (player) => player.fairPrice >= 50000000,
+  ).length;
+  const latestContractYear = activePlayers.reduce(
+    (latest, player) =>
+      Math.max(latest, Number(player.contractExpiration.slice(0, 4))),
+    0,
+  );
+  const seasons = [...new Set(clubs.map((club) => club.seasonName))];
+
+  const handleSeasonChange = (seasonName: string) => {
+    setSelectedSeason(seasonName);
+    const firstClubInSeason = clubs.find(
+      (club) => club.seasonName === seasonName,
+    );
+    if (firstClubInSeason) setSelectedClubId(firstClubInSeason.clubId);
+  };
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -29,36 +69,59 @@ function App() {
           <a href="#activity">Player leads</a>
           <a href="#goals">Squad planner</a>
         </nav>
-        <button
-          className="profile-button"
-          type="button"
-          aria-label="Open profile menu"
-        >
-          <span className="avatar">AR</span>
-          <span className="profile-name">{selectedClub.clubName}</span>
-          <span className="chevron" aria-hidden="true">
-            ⌄
+        <div className="profile-display">
+          <span className="avatar" aria-hidden="true">
+            <img src={activeClub.clubImageUrl} alt="" />
+            <span>{activeClub.clubName.slice(0, 2).toUpperCase()}</span>
           </span>
-        </button>
+          <span className="profile-name">{activeClub.clubName}</span>
+        </div>
       </header>
 
       <div className="dashboard" id="overview">
         <section className="welcome-row">
           <div>
             <p className="eyebrow">
-              Club overview · {selectedClub.seasonName} season
+              Club overview · {activeClub.seasonName} season
             </p>
             <h1>
-              {selectedClub.clubName} <span className="accent-dot">.</span>
+              {activeClub.clubName} <span className="accent-dot">.</span>
             </h1>
             <p className="subtitle">
               A concise view of club value, market position, and recruitment
               context.
             </p>
           </div>
-          <button className="primary-action" type="button">
-            <span aria-hidden="true">↗</span> Compare club
-          </button>
+          <div className="selection-controls" aria-label="Dashboard filters">
+            <label>
+              Club
+              <select
+                value={activeClub.clubId}
+                onChange={(event) =>
+                  setSelectedClubId(Number(event.target.value))
+                }
+              >
+                {seasonClubs.map((club) => (
+                  <option key={club.clubId} value={club.clubId}>
+                    {club.clubName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Season
+              <select
+                value={selectedSeason}
+                onChange={(event) => handleSeasonChange(event.target.value)}
+              >
+                {seasons.map((season) => (
+                  <option key={season} value={season}>
+                    {season}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </section>
 
         <section className="stat-grid" aria-label="Club performance statistics">
@@ -67,11 +130,12 @@ function App() {
               <span className="stat-icon">↗</span>
               <span>Team performance</span>
             </div>
-            <strong>{selectedClub.transferKpi}</strong>
+            <strong>{activeClub.transferKpi}</strong>
             <div className="stat-footer">
               <span>Transfer KPI</span>
               <span className="trend positive">
-                +{transferKpiDelta.toFixed(1)}
+                {activeKpiDelta >= 0 ? "+" : ""}
+                {activeKpiDelta.toFixed(1)}
               </span>
             </div>
           </article>
@@ -80,11 +144,11 @@ function App() {
               <span className="stat-icon">✓</span>
               <span>Financial health</span>
             </div>
-            <strong>{formatMillions(selectedClub.totalAssets)}</strong>
+            <strong>{formatMillions(activeClub.totalAssets)}</strong>
             <div className="stat-footer">
               <span>Total assets</span>
               <span className="trend positive">
-                {formatMillions(selectedClub.totalRevenues)} rev.
+                {formatMillions(activeClub.totalRevenues)} rev.
               </span>
             </div>
           </article>
@@ -123,11 +187,13 @@ function App() {
                 <p className="eyebrow">Market comparison</p>
                 <h2>Transfer KPI by club</h2>
               </div>
-              <span className="panel-note">2024/25 · Premier League</span>
+              <span className="panel-note">
+                {activeClub.seasonName} · {activeClub.competitionName}
+              </span>
             </div>
             <TransferKpiChart
-              clubs={clubs}
-              selectedClubName={selectedClub.clubName}
+              clubs={seasonClubs.length ? seasonClubs : clubs}
+              selectedClubName={activeClub.clubName}
             />
           </article>
           <article className="panel table-panel">
@@ -141,7 +207,7 @@ function App() {
               </button>
             </div>
             <PlayerValueTable
-              players={selectedSeasonPlayers}
+              players={activePlayers}
               formatValue={formatMillions}
             />
           </article>
@@ -162,14 +228,17 @@ function App() {
               <div className="goal-row">
                 <span className="goal-dot goal-dot--green"></span>
                 <div className="goal-copy">
-                  <strong>Highest fair price in sample</strong>
+                  <strong>Highest fair price in squad</strong>
                   <span>
-                    {topPlayer.playerName} ·{" "}
-                    {formatMillions(topPlayer.fairPrice)}
+                    {activeTopPlayer
+                      ? `${activeTopPlayer.playerName} · ${formatMillions(activeTopPlayer.fairPrice)}`
+                      : "No player records available"}
                   </span>
                 </div>
                 <div className="progress-value">
-                  {formatMillions(topPlayer.fairPrice)}
+                  {activeTopPlayer
+                    ? formatMillions(activeTopPlayer.fairPrice)
+                    : "—"}
                 </div>
               </div>
               <div className="progress-track">
@@ -183,17 +252,17 @@ function App() {
                 <div className="goal-copy">
                   <strong>Transfer KPI</strong>
                   <span>
-                    {selectedClub.clubName} · dataset average{" "}
-                    {averageTransferKpi.toFixed(1)}
+                    {activeClub.clubName} · season average{" "}
+                    {activeAverageKpi.toFixed(1)}
                   </span>
                 </div>
-                <div className="progress-value">{selectedClub.transferKpi}</div>
+                <div className="progress-value">{activeClub.transferKpi}</div>
               </div>
               <div className="progress-track">
                 <span
                   className="progress-fill progress-fill--orange"
                   style={{
-                    width: `${Math.min((selectedClub.transferKpi / 30) * 100, 100)}%`,
+                    width: `${Math.min((activeClub.transferKpi / 30) * 100, 100)}%`,
                   }}
                 ></span>
               </div>
@@ -202,13 +271,12 @@ function App() {
                 <div className="goal-copy">
                   <strong>Players above £50M fair price</strong>
                   <span>
-                    {selectedClub.clubName} squad sample ·{" "}
-                    {selectedClub.seasonName}
+                    {activeClub.clubName} squad sample · {activeClub.seasonName}
                   </span>
                 </div>
                 <div className="progress-value">
                   {
-                    selectedSeasonPlayers.filter(
+                    activePlayers.filter(
                       (player) => player.fairPrice >= 50000000,
                     ).length
                   }
@@ -218,7 +286,7 @@ function App() {
                 <span
                   className="progress-fill progress-fill--blue"
                   style={{
-                    width: `${(selectedSeasonPlayers.filter((player) => player.fairPrice >= 50000000).length / selectedSeasonPlayers.length) * 100}%`,
+                    width: `${activePlayers.length ? (playersAboveThreshold / activePlayers.length) * 100 : 0}%`,
                   }}
                 ></span>
               </div>
@@ -243,27 +311,33 @@ function App() {
                 <span className="activity-badge activity-badge--lime">✓</span>
                 <div>
                   <strong>Main insight</strong>
-                  <span>{mainInsight}</span>
+                  <span>{activeInsight}</span>
                 </div>
-                <time>Today</time>
+                <time>Now</time>
               </div>
               <div className="activity-item">
                 <span className="activity-badge activity-badge--coral">↗</span>
                 <div>
-                  <strong>Arsenal ranks above sample average</strong>
+                  <strong>{activeClub.clubName} versus season average</strong>
                   <span>
-                    Transfer KPI is {transferKpiDelta.toFixed(1)} points higher
+                    Transfer KPI is{" "}
+                    {activeKpiDelta >= 0
+                      ? `${activeKpiDelta.toFixed(1)} points higher`
+                      : `${Math.abs(activeKpiDelta).toFixed(1)} points lower`}
                   </span>
                 </div>
-                <time>2d</time>
+                <time>Live</time>
               </div>
               <div className="activity-item">
                 <span className="activity-badge activity-badge--sky">◷</span>
                 <div>
                   <strong>Contract window approaching</strong>
-                  <span>4 players expire within 18 months</span>
+                  <span>
+                    Latest recorded contract ends in{" "}
+                    {latestContractYear || "an unknown year"}
+                  </span>
                 </div>
-                <time>5d</time>
+                <time>Data</time>
               </div>
             </div>
           </article>

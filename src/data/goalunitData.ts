@@ -1,5 +1,6 @@
 export type ClubRecord = {
   clubId: number
+  clubImageUrl: string
   competitionName: string
   seasonName: string
   clubName: string
@@ -17,10 +18,10 @@ export type PlayerRecord = {
 }
 
 export const clubs: ClubRecord[] = [
-  { clubId: 1255, competitionName: "Premier League", seasonName: "2024/2025", clubName: "Arsenal", transferKpi: 22.7, totalAssets: 1132451000, totalRevenues: 760097000 },
-  { clubId: 2121, competitionName: "Premier League", seasonName: "2024/2025", clubName: "Liverpool", transferKpi: 12.7, totalAssets: 897169000, totalRevenues: 787175000 },
-  { clubId: 2175, competitionName: "Premier League", seasonName: "2024/2025", clubName: "Manchester City", transferKpi: 25.5, totalAssets: 2183403000, totalRevenues: 766622000 },
-  { clubId: 2188, competitionName: "Premier League", seasonName: "2024/2025", clubName: "Manchester United", transferKpi: 26.5, totalAssets: 2458064000, totalRevenues: 741317000 },
+  { clubId: 1255, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/21_120x120.png", competitionName: "Premier League", seasonName: "2024/2025", clubName: "Arsenal", transferKpi: 22.7, totalAssets: 1132451000, totalRevenues: 760097000 },
+  { clubId: 2121, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/24_120x120.png", competitionName: "Premier League", seasonName: "2024/2025", clubName: "Liverpool", transferKpi: 12.7, totalAssets: 897169000, totalRevenues: 787175000 },
+  { clubId: 2175, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/23_120x120.png", competitionName: "Premier League", seasonName: "2024/2025", clubName: "Manchester City", transferKpi: 25.5, totalAssets: 2183403000, totalRevenues: 766622000 },
+  { clubId: 2188, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/22_120x120.png", competitionName: "Premier League", seasonName: "2024/2025", clubName: "Manchester United", transferKpi: 26.5, totalAssets: 2458064000, totalRevenues: 741317000 },
 ]
 
 export const players: PlayerRecord[] = [
@@ -41,11 +42,21 @@ export const players: PlayerRecord[] = [
 ]
 
 export const selectedClub = clubs[0]
-export const selectedSeasonPlayers = players.filter((player) => player.seasonName === selectedClub.seasonName && player.clubId === selectedClub.clubId)
-export const topPlayer = [...selectedSeasonPlayers].sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)[0]
-export const averageTransferKpi = clubs.reduce((total, club) => total + club.transferKpi, 0) / clubs.length
+export const getClubPlayers = (clubId: number, seasonName: string) => players.filter((player) => player.seasonName === seasonName && player.clubId === clubId)
+export const getTopPlayer = (clubPlayers: PlayerRecord[]) => [...clubPlayers].sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)[0]
+export const getAverageTransferKpi = (clubRecords: ClubRecord[]) => clubRecords.reduce((total, club) => total + club.transferKpi, 0) / clubRecords.length
+export const getInsight = (club: ClubRecord, clubRecords: ClubRecord[]) => {
+  const averageKpi = getAverageTransferKpi(clubRecords)
+  const deltaRaw = club.transferKpi - averageKpi
+  const delta = Math.round((deltaRaw + 0.000000001) * 10) / 10
+  const deltaPercent = (deltaRaw / averageKpi) * 100
+  return `${club.clubName}'s Transfer KPI is ${delta.toFixed(1)} points ${delta >= 0 ? "above" : "below"} the sample average (${Math.abs(deltaPercent).toFixed(1)}%).`
+}
+export const selectedSeasonPlayers = getClubPlayers(selectedClub.clubId, selectedClub.seasonName)
+export const topPlayer = getTopPlayer(selectedSeasonPlayers)
+export const averageTransferKpi = getAverageTransferKpi(clubs)
 export const transferKpiDeltaRaw = selectedClub.transferKpi - averageTransferKpi
 export const transferKpiDelta = Math.round((transferKpiDeltaRaw + 0.000000001) * 10) / 10
 export const transferKpiDeltaPercent = (transferKpiDeltaRaw / averageTransferKpi) * 100
-export const mainInsight = `${selectedClub.clubName}'s Transfer KPI is ${transferKpiDelta.toFixed(1)} points above the sample average (${transferKpiDeltaPercent.toFixed(1)}%).`
+export const mainInsight = getInsight(selectedClub, clubs)
 export const formatMillions = (value: number) => `£${Math.round(value / 1000000)}M`

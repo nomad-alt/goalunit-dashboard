@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   averageTransferKpi,
   clubs,
+  getClubPlayers,
+  getInsight,
+  getTopPlayer,
   mainInsight,
   selectedClub,
   selectedSeasonPlayers,
@@ -21,6 +24,16 @@ describe("Goalunit frontend data layer", () => {
   it("identifies the highest-value player in the selected squad", () => {
     expect(topPlayer.playerName).toBe("Bukayo Saka");
     expect(topPlayer.fairPrice).toBe(130024906);
+  });
+
+  it("recalculates the player view and insight for another club", () => {
+    const cityClub = clubs.find((club) => club.clubName === "Manchester City");
+    expect(cityClub).toBeDefined();
+    const cityPlayers = getClubPlayers(cityClub!.clubId, cityClub!.seasonName);
+
+    expect(cityPlayers).toHaveLength(2);
+    expect(getTopPlayer(cityPlayers).playerName).toBe("Erling Haaland");
+    expect(getInsight(cityClub!, clubs)).toContain("Manchester City's Transfer KPI is 3.7 points above");
   });
 
   it("calculates the average Transfer KPI from every club record", () => {
