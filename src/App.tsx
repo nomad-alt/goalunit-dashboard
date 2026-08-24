@@ -52,7 +52,8 @@ function App() {
               {selectedClub.clubName} <span className="accent-dot">.</span>
             </h1>
             <p className="subtitle">
-              A quick read on squad structure, performance, and market value.
+              A concise view of club value, market position, and recruitment
+              context.
             </p>
           </div>
           <button className="primary-action" type="button">
@@ -68,7 +69,7 @@ function App() {
             </div>
             <strong>{selectedClub.transferKpi}</strong>
             <div className="stat-footer">
-              <span>Power rank</span>
+              <span>Transfer KPI</span>
               <span className="trend positive">
                 +{transferKpiDelta.toFixed(1)}
               </span>
@@ -81,7 +82,7 @@ function App() {
             </div>
             <strong>{formatMillions(selectedClub.totalAssets)}</strong>
             <div className="stat-footer">
-              <span>Fair squad price</span>
+              <span>Total assets</span>
               <span className="trend positive">
                 {formatMillions(selectedClub.totalRevenues)} rev.
               </span>
@@ -96,8 +97,8 @@ function App() {
               32<span className="unit">%</span>
             </strong>
             <div className="stat-footer">
-              <span>U23 playing time</span>
-              <span className="trend positive">+5.0%</span>
+              <span>Young player signal</span>
+              <span className="trend positive">32%</span>
             </div>
           </article>
           <article className="stat-card stat-card--sky">
@@ -109,8 +110,8 @@ function App() {
               34<span className="unit"> mo</span>
             </strong>
             <div className="stat-footer">
-              <span>Average contract length</span>
-              <span className="trend neutral">-2 mo</span>
+              <span>Contract horizon</span>
+              <span className="trend neutral">34 mo</span>
             </div>
           </article>
         </section>
@@ -246,8 +247,8 @@ function App() {
               <div className="activity-item">
                 <span className="activity-badge activity-badge--coral">↗</span>
                 <div>
-                  <strong>U25 value share below average</strong>
-                  <span>7 percentage points below La Liga</span>
+                  <strong>Arsenal ranks above sample average</strong>
+                  <span>Transfer KPI is {transferKpiDelta.toFixed(1)} points higher</span>
                 </div>
                 <time>2d</time>
               </div>

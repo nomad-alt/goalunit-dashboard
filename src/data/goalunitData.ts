@@ -34,7 +34,8 @@ export const selectedClub = clubs[0]
 export const selectedSeasonPlayers = players.filter((player) => player.seasonName === selectedClub.seasonName)
 export const topPlayer = [...selectedSeasonPlayers].sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)[0]
 export const averageTransferKpi = clubs.reduce((total, club) => total + club.transferKpi, 0) / clubs.length
-export const transferKpiDelta = Math.round((selectedClub.transferKpi - averageTransferKpi) * 10) / 10
-export const transferKpiDeltaPercent = (transferKpiDelta / averageTransferKpi) * 100
+export const transferKpiDeltaRaw = selectedClub.transferKpi - averageTransferKpi
+export const transferKpiDelta = Math.round((transferKpiDeltaRaw + 0.000000001) * 10) / 10
+export const transferKpiDeltaPercent = (transferKpiDeltaRaw / averageTransferKpi) * 100
 export const mainInsight = `${selectedClub.clubName}'s Transfer KPI is ${transferKpiDelta.toFixed(1)} points above the sample average (${transferKpiDeltaPercent.toFixed(1)}%).`
 export const formatMillions = (value: number) => `£${Math.round(value / 1000000)}M`
