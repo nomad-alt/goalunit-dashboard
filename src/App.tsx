@@ -4,9 +4,12 @@ import {
   clubs,
   formatMillions,
   getAverageTransferKpi,
+  getContractExpirationsWithinYears,
   getClubPlayers,
   getInsight,
+  getRevenueToAssetsRatio,
   getTopPlayer,
+  getYearOverYearKpi,
   selectedClub,
 } from "./data/goalunitData";
 import { PlayerValueTable } from "./components/PlayerValueTable";
@@ -34,15 +37,14 @@ function App() {
   const activeInsight = getInsight(
     activeClub,
     seasonClubs.length ? seasonClubs : clubs,
+    activePlayers,
   );
-  const playersAboveThreshold = activePlayers.filter(
-    (player) => player.fairPrice >= 50000000,
-  ).length;
-  const latestContractYear = activePlayers.reduce(
-    (latest, player) =>
-      Math.max(latest, Number(player.contractExpiration.slice(0, 4))),
-    0,
+  const contractsExpiringSoon = getContractExpirationsWithinYears(
+    activePlayers,
+    activeClub.seasonName,
   );
+  const revenueToAssetsRatio = getRevenueToAssetsRatio(activeClub);
+  const yearOverYearKpi = getYearOverYearKpi(activeClub, clubs);
   const seasons = [...new Set(clubs.map((club) => club.seasonName))];
 
   const handleSeasonChange = (seasonName: string) => {
@@ -162,7 +164,9 @@ function App() {
             </strong>
             <div className="stat-footer">
               <span>Young player signal</span>
-              <span className="trend positive">32%</span>
+              <span className="trend positive">
+                {contractsExpiringSoon} due soon
+              </span>
             </div>
           </article>
           <article className="stat-card stat-card--sky">
@@ -171,11 +175,16 @@ function App() {
               <span>Recruitment</span>
             </div>
             <strong>
-              34<span className="unit"> mo</span>
+              {revenueToAssetsRatio.toFixed(1)}
+              <span className="unit">%</span>
             </strong>
             <div className="stat-footer">
-              <span>Contract horizon</span>
-              <span className="trend neutral">34 mo</span>
+              <span>Revenue / assets</span>
+              <span className="trend neutral">
+                {yearOverYearKpi === null
+                  ? "No prior"
+                  : `${yearOverYearKpi >= 0 ? "+" : ""}${yearOverYearKpi.toFixed(1)} YoY`}
+              </span>
             </div>
           </article>
         </section>
@@ -269,24 +278,18 @@ function App() {
               <div className="goal-row">
                 <span className="goal-dot goal-dot--blue"></span>
                 <div className="goal-copy">
-                  <strong>Players above £50M fair price</strong>
+                  <strong>Contracts expiring within two years</strong>
                   <span>
                     {activeClub.clubName} squad sample · {activeClub.seasonName}
                   </span>
                 </div>
-                <div className="progress-value">
-                  {
-                    activePlayers.filter(
-                      (player) => player.fairPrice >= 50000000,
-                    ).length
-                  }
-                </div>
+                <div className="progress-value">{contractsExpiringSoon}</div>
               </div>
               <div className="progress-track">
                 <span
                   className="progress-fill progress-fill--blue"
                   style={{
-                    width: `${activePlayers.length ? (playersAboveThreshold / activePlayers.length) * 100 : 0}%`,
+                    width: `${activePlayers.length ? (contractsExpiringSoon / activePlayers.length) * 100 : 0}%`,
                   }}
                 ></span>
               </div>
@@ -331,10 +334,11 @@ function App() {
               <div className="activity-item">
                 <span className="activity-badge activity-badge--sky">◷</span>
                 <div>
-                  <strong>Contract window approaching</strong>
+                  <strong>Year-over-year KPI movement</strong>
                   <span>
-                    Latest recorded contract ends in{" "}
-                    {latestContractYear || "an unknown year"}
+                    {yearOverYearKpi === null
+                      ? "No prior season in the dataset"
+                      : `${yearOverYearKpi >= 0 ? "+" : ""}${yearOverYearKpi.toFixed(1)} points versus the previous season`}
                   </span>
                 </div>
                 <time>Data</time>

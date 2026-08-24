@@ -18,6 +18,10 @@ export type PlayerRecord = {
 }
 
 export const clubs: ClubRecord[] = [
+  { clubId: 1255, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/21_120x120.png", competitionName: "Premier League", seasonName: "2023/2024", clubName: "Arsenal", transferKpi: 31.6, totalAssets: 1154556000, totalRevenues: 678238000 },
+  { clubId: 2121, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/24_120x120.png", competitionName: "Premier League", seasonName: "2023/2024", clubName: "Liverpool", transferKpi: 21.7, totalAssets: 911160000, totalRevenues: 675141000 },
+  { clubId: 2175, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/23_120x120.png", competitionName: "Premier League", seasonName: "2023/2024", clubName: "Manchester City", transferKpi: 36.3, totalAssets: 1686533000, totalRevenues: 791422000 },
+  { clubId: 2188, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/22_120x120.png", competitionName: "Premier League", seasonName: "2023/2024", clubName: "Manchester United", transferKpi: 39.7, totalAssets: 2121511000, totalRevenues: 739449000 },
   { clubId: 1255, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/21_120x120.png", competitionName: "Premier League", seasonName: "2024/2025", clubName: "Arsenal", transferKpi: 22.7, totalAssets: 1132451000, totalRevenues: 760097000 },
   { clubId: 2121, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/24_120x120.png", competitionName: "Premier League", seasonName: "2024/2025", clubName: "Liverpool", transferKpi: 12.7, totalAssets: 897169000, totalRevenues: 787175000 },
   { clubId: 2175, clubImageUrl: "https://cdn5.wyscout.com/photos/team/public/23_120x120.png", competitionName: "Premier League", seasonName: "2024/2025", clubName: "Manchester City", transferKpi: 25.5, totalAssets: 2183403000, totalRevenues: 766622000 },
@@ -41,22 +45,47 @@ export const players: PlayerRecord[] = [
   { clubId: 1255, playerName: "Gabriel Jesus", seasonName: "2024/2025", fairPrice: 27689477, contractExpiration: "2027-06-30" },
 ]
 
-export const selectedClub = clubs[0]
+export const selectedClub = clubs.find((club) => club.clubName === "Arsenal" && club.seasonName === "2024/2025") ?? clubs[0]
 export const getClubPlayers = (clubId: number, seasonName: string) => players.filter((player) => player.seasonName === seasonName && player.clubId === clubId)
 export const getTopPlayer = (clubPlayers: PlayerRecord[]) => [...clubPlayers].sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)[0]
 export const getAverageTransferKpi = (clubRecords: ClubRecord[]) => clubRecords.reduce((total, club) => total + club.transferKpi, 0) / clubRecords.length
-export const getInsight = (club: ClubRecord, clubRecords: ClubRecord[]) => {
+export const getContractExpirationsWithinYears = (clubPlayers: PlayerRecord[], seasonName: string, years = 2) => {
+  const seasonEndYear = Number(seasonName.slice(-4))
+  return clubPlayers.filter((player) => Number(player.contractExpiration.slice(0, 4)) <= seasonEndYear + years).length
+}
+export const getRevenueToAssetsRatio = (club: ClubRecord) => club.totalAssets ? (club.totalRevenues / club.totalAssets) * 100 : 0
+export const getYearOverYearKpi = (club: ClubRecord, clubRecords: ClubRecord[]) => {
+  const previousSeason = `${Number(club.seasonName.slice(0, 4)) - 1}/${Number(club.seasonName.slice(-4)) - 1}`
+  const previousClub = clubRecords.find((record) => record.clubId === club.clubId && record.seasonName === previousSeason)
+  return previousClub ? club.transferKpi - previousClub.transferKpi : null
+}
+export const getKpiExtremes = (clubRecords: ClubRecord[]) => ({
+  highest: clubRecords.reduce((highest, club) => club.transferKpi > highest.transferKpi ? club : highest),
+  lowest: clubRecords.reduce((lowest, club) => club.transferKpi < lowest.transferKpi ? club : lowest),
+})
+export const getFairPriceConcentration = (clubPlayers: PlayerRecord[], topN = 3) => {
+  const totalFairPrice = clubPlayers.reduce((total, player) => total + player.fairPrice, 0)
+  const topPlayersFairPrice = [...clubPlayers]
+    .sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)
+    .slice(0, topN)
+    .reduce((total, player) => total + player.fairPrice, 0)
+  return totalFairPrice ? (topPlayersFairPrice / totalFairPrice) * 100 : 0
+}
+export const getInsight = (club: ClubRecord, clubRecords: ClubRecord[], clubPlayers: PlayerRecord[] = []) => {
   const averageKpi = getAverageTransferKpi(clubRecords)
+  const { highest, lowest } = getKpiExtremes(clubRecords)
   const deltaRaw = club.transferKpi - averageKpi
   const delta = Math.round((deltaRaw + 0.000000001) * 10) / 10
   const deltaPercent = (deltaRaw / averageKpi) * 100
-  return `${club.clubName}'s Transfer KPI is ${delta.toFixed(1)} points ${delta >= 0 ? "above" : "below"} the sample average (${Math.abs(deltaPercent).toFixed(1)}%).`
+  const fairPriceConcentration = getFairPriceConcentration(clubPlayers)
+  const concentrationInsight = clubPlayers.length ? ` Top three players represent ${fairPriceConcentration.toFixed(1)}% of squad fair price.` : ""
+  return `${club.clubName}'s Transfer KPI is ${delta.toFixed(1)} points ${delta >= 0 ? "above" : "below"} the sample average (${Math.abs(deltaPercent).toFixed(1)}%). Highest: ${highest.clubName} (${highest.transferKpi}); lowest: ${lowest.clubName} (${lowest.transferKpi}).${concentrationInsight}`
 }
 export const selectedSeasonPlayers = getClubPlayers(selectedClub.clubId, selectedClub.seasonName)
 export const topPlayer = getTopPlayer(selectedSeasonPlayers)
-export const averageTransferKpi = getAverageTransferKpi(clubs)
+export const averageTransferKpi = getAverageTransferKpi(clubs.filter((club) => club.seasonName === selectedClub.seasonName))
 export const transferKpiDeltaRaw = selectedClub.transferKpi - averageTransferKpi
 export const transferKpiDelta = Math.round((transferKpiDeltaRaw + 0.000000001) * 10) / 10
 export const transferKpiDeltaPercent = (transferKpiDeltaRaw / averageTransferKpi) * 100
-export const mainInsight = getInsight(selectedClub, clubs)
+export const mainInsight = getInsight(selectedClub, clubs.filter((club) => club.seasonName === selectedClub.seasonName), selectedSeasonPlayers)
 export const formatMillions = (value: number) => `£${Math.round(value / 1000000)}M`
