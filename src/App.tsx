@@ -248,7 +248,9 @@ function App() {
                 <span className="activity-badge activity-badge--coral">↗</span>
                 <div>
                   <strong>Arsenal ranks above sample average</strong>
-                  <span>Transfer KPI is {transferKpiDelta.toFixed(1)} points higher</span>
+                  <span>
+                    Transfer KPI is {transferKpiDelta.toFixed(1)} points higher
+                  </span>
                 </div>
                 <time>2d</time>
               </div>

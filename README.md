@@ -4,29 +4,83 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## React Compiler
+ # Goalunit Club Analysis
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+A football club analytics dashboard built with React, TypeScript, and Vite using a sample of Goalunit club and player datasets.
 
-## Expanding the Oxlint configuration
+The dashboard demonstrates a small data-to-interface workflow for recruitment and club analysis:
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+- Compare Transfer KPI values across Premier League clubs.
+- Rank players by estimated fair price.
+- Display contract expiration years alongside player values.
+- Derive a main insight by comparing a selected club with the dataset average.
+- Surface club value, revenue, squad structure, and recruitment signals in a responsive dashboard.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- CSS
+- Oxlint
+
+## Getting Started
+
+Install dependencies:
+
+```bash
+npm install
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The app is then available at the local URL shown by Vite, usually `http://localhost:5173`.
+
+## Data
+
+The current prototype uses a compact, typed dataset in [`src/data/goalunitData.ts`](src/data/goalunitData.ts). It is based on the supplied `clubs.csv` and `players.csv` files and includes:
+
+- Club competition and season
+- Transfer KPI
+- Total assets and revenue
+- Player fair price
+- Contract expiration
+
+The original CSV files are not loaded directly by the browser. In a production version, the files could be processed by a Python or Airflow pipeline, stored in PostgreSQL, and exposed to the frontend through an API.
+
+## Project Structure
+
+```text
+src/
+  components/
+    PlayerValueTable.tsx
+    TransferKpiChart.tsx
+  data/
+    goalunitData.ts
+  App.tsx
+  App.css
+  index.css
+```
+
+## Validation
+
+Run the production build:
+
+```bash
+npm run build
+```
+
+Run linting:
+
+```bash
+npm run lint
+```
+
+## Scope
+
+This is a portfolio prototype for exploring Goalunit-style football intelligence. The player sample currently does not include a club ID, so player rankings represent a cross-club market sample rather than a complete club-specific squad valuation.
