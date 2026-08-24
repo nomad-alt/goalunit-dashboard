@@ -1,63 +1,46 @@
 import { useState } from "react";
 import "./App.css";
 import {
-  clubs,
   dataAsOf,
   formatMillions,
-  getAverageTransferKpi,
-  getContractExpirationsWithinYears,
-  getClubPlayers,
-  getInsight,
-  getPlayersExpiringWithinYears,
-  getRevenueToAssetsRatio,
-  getTopPlayer,
-  getYearOverYearKpi,
-  selectedClub,
-} from "./data/goalunitData";
+  getAvailableClubs,
+  getAvailableSeasons,
+  getClubOverview,
+  getDefaultClubOverview,
+} from "./data/goalunitRepository";
 import { ContractRiskTable } from "./components/ContractRiskTable";
 import { PlayerValueTable } from "./components/PlayerValueTable";
 import { TransferKpiChart } from "./components/TransferKpiChart";
 
 function App() {
-  const [selectedClubId, setSelectedClubId] = useState(selectedClub.clubId);
-  const [selectedSeason, setSelectedSeason] = useState(selectedClub.seasonName);
+  const defaultOverview = getDefaultClubOverview();
+  const [selectedClubId, setSelectedClubId] = useState(
+    defaultOverview.club.clubId,
+  );
+  const [selectedSeason, setSelectedSeason] = useState(
+    defaultOverview.club.seasonName,
+  );
   const [showAllPlayers, setShowAllPlayers] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const seasonClubs = clubs.filter(
-    (club) => club.seasonName === selectedSeason,
-  );
-  const activeClub =
-    seasonClubs.find((club) => club.clubId === selectedClubId) ??
-    seasonClubs[0] ??
-    selectedClub;
-  const activePlayers = getClubPlayers(
-    activeClub.clubId,
-    activeClub.seasonName,
-  );
-  const activeTopPlayer = getTopPlayer(activePlayers);
-  const activeAverageKpi = getAverageTransferKpi(
-    seasonClubs.length ? seasonClubs : clubs,
-  );
-  const activeKpiDelta = activeClub.transferKpi - activeAverageKpi;
-  const activeInsight = getInsight(
-    activeClub,
-    seasonClubs.length ? seasonClubs : clubs,
-    activePlayers,
-  );
-  const contractsExpiringSoon = getContractExpirationsWithinYears(
-    activePlayers,
-    activeClub.seasonName,
-  );
-  const expiringPlayers = getPlayersExpiringWithinYears(activePlayers, activeClub.seasonName);
-  const revenueToAssetsRatio = getRevenueToAssetsRatio(activeClub);
-  const yearOverYearKpi = getYearOverYearKpi(activeClub, clubs);
-  const seasons = [...new Set(clubs.map((club) => club.seasonName))];
+  const overview = getClubOverview(selectedClubId, selectedSeason);
+  const {
+    club: activeClub,
+    seasonClubs,
+    players: activePlayers,
+    topPlayer: activeTopPlayer,
+    averageTransferKpi: activeAverageKpi,
+    transferKpiDelta: activeKpiDelta,
+    insight: activeInsight,
+    contractsExpiringSoon,
+    expiringPlayers,
+    revenueToAssetsRatio,
+    yearOverYearKpi,
+  } = overview;
+  const seasons = getAvailableSeasons();
 
   const handleSeasonChange = (seasonName: string) => {
     setSelectedSeason(seasonName);
-    const firstClubInSeason = clubs.find(
-      (club) => club.seasonName === seasonName,
-    );
+    const firstClubInSeason = getAvailableClubs(seasonName)[0];
     if (firstClubInSeason) setSelectedClubId(firstClubInSeason.clubId);
     setShowAllPlayers(false);
   };
@@ -105,7 +88,9 @@ function App() {
               A concise view of club value, market position, and recruitment
               context.
             </p>
-            <p className="data-provenance">Data as of {dataAsOf} · Source snapshot: Goalunit CSV exports</p>
+            <p className="data-provenance">
+              Data as of {dataAsOf} · Source snapshot: Goalunit CSV exports
+            </p>
           </div>
           <div className="selection-controls" aria-label="Dashboard filters">
             <label>
@@ -136,7 +121,15 @@ function App() {
                 ))}
               </select>
             </label>
-            <button className="compare-action" type="button" onClick={() => document.getElementById("market-comparison")?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+            <button
+              className="compare-action"
+              type="button"
+              onClick={() =>
+                document
+                  .getElementById("market-comparison")
+                  ?.scrollIntoView({ behavior: "smooth", block: "center" })
+              }
+            >
               <span aria-hidden="true">↗</span> Compare clubs
             </button>
           </div>
@@ -217,7 +210,7 @@ function App() {
               </span>
             </div>
             <TransferKpiChart
-              clubs={seasonClubs.length ? seasonClubs : clubs}
+              clubs={seasonClubs}
               selectedClubName={activeClub.clubName}
               onSelectClub={handleClubChange}
             />
@@ -386,8 +379,13 @@ function App() {
         <section className="risk-section" aria-label="Contract risk analysis">
           <article className="panel contract-risk-panel">
             <div className="panel-header">
-              <div><p className="eyebrow">Recruitment watch</p><h2>Contract risk</h2></div>
-              <span className="risk-summary">{contractsExpiringSoon} players need review</span>
+              <div>
+                <p className="eyebrow">Recruitment watch</p>
+                <h2>Contract risk</h2>
+              </div>
+              <span className="risk-summary">
+                {contractsExpiringSoon} players need review
+              </span>
             </div>
             <ContractRiskTable players={expiringPlayers} />
           </article>

@@ -18,6 +18,7 @@ The dashboard demonstrates a small data-to-interface workflow for recruitment an
 - Vite
 - CSS
 - Oxlint
+- Vitest
 
 ## Getting Started
 
@@ -50,6 +51,12 @@ The dashboard labels the source snapshot as `2025-05-19`. Transfer KPI compariso
 
 The original CSV files are not loaded directly by the browser. In a production version, the files could be processed by a Python or Airflow pipeline, stored in PostgreSQL, and exposed to the frontend through an API.
 
+## Data Boundary
+
+The React application reads through [`src/data/goalunitRepository.ts`](src/data/goalunitRepository.ts), which provides the API-shaped `getClubOverview()` function and selector helpers. The repository currently uses local TypeScript data, but it is designed to be replaced by a Go/PostgreSQL service without changing the dashboard components.
+
+`getClubOverview()` returns the selected club, season comparison records, player rankings, contract-risk records, financial ratios, year-over-year KPI movement, and the generated insight in one view model.
+
 To regenerate a typed dataset from the supplied files:
 
 ```bash
@@ -70,6 +77,8 @@ src/
   data/
     goalunitData.ts
     goalunitData.test.ts
+    goalunitRepository.ts
+    goalunitRepository.test.ts
 scripts/
   prepare_data.py
 tests/
