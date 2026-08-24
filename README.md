@@ -2,6 +2,8 @@
 
 A football club analytics dashboard built with React, TypeScript, and Vite using a sample of Goalunit club and player datasets.
 
+**Live demo:** [goalunit-dashboard.vercel.app](https://goalunit-dashboard.vercel.app/)
+
 The dashboard demonstrates a small data-to-interface workflow for recruitment and club analysis:
 
 - Compare Transfer KPI values across Premier League clubs.
@@ -10,6 +12,10 @@ The dashboard demonstrates a small data-to-interface workflow for recruitment an
 - Display contract expiration years alongside player values.
 - Derive insights from KPI extremes, fair-price concentration, contract risk, revenue efficiency, and year-over-year movement.
 - Surface club value, revenue, squad structure, and recruitment signals in a responsive dashboard.
+
+## Analytical Insight
+
+In the current 2024/25 sample, Arsenal's Transfer KPI is 0.9 points above the four-club average, or 3.9% higher. Arsenal's three highest-valued players also represent 48.8% of the selected squad sample's total fair price, providing a simple signal of value concentration.
 
 ## Tech Stack
 
