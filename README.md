@@ -91,6 +91,12 @@ Run linting:
 npm run lint
 ```
 
+Run the data preparation tests:
+
+```bash
+npm test
+```
+
 ## Scope
 
 This is a portfolio prototype for exploring Goalunit-style football intelligence. The player sample currently does not include a club ID, so player rankings represent a cross-club market sample rather than a complete club-specific squad valuation.
