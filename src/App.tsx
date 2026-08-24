@@ -7,11 +7,13 @@ import {
   getContractExpirationsWithinYears,
   getClubPlayers,
   getInsight,
+  getPlayersExpiringWithinYears,
   getRevenueToAssetsRatio,
   getTopPlayer,
   getYearOverYearKpi,
   selectedClub,
 } from "./data/goalunitData";
+import { ContractRiskTable } from "./components/ContractRiskTable";
 import { PlayerValueTable } from "./components/PlayerValueTable";
 import { TransferKpiChart } from "./components/TransferKpiChart";
 
@@ -45,6 +47,7 @@ function App() {
     activePlayers,
     activeClub.seasonName,
   );
+  const expiringPlayers = getPlayersExpiringWithinYears(activePlayers, activeClub.seasonName);
   const revenueToAssetsRatio = getRevenueToAssetsRatio(activeClub);
   const yearOverYearKpi = getYearOverYearKpi(activeClub, clubs);
   const seasons = [...new Set(clubs.map((club) => club.seasonName))];
@@ -376,6 +379,15 @@ function App() {
                 <time>Data</time>
               </div>
             </div>
+          </article>
+        </section>
+        <section className="risk-section" aria-label="Contract risk analysis">
+          <article className="panel contract-risk-panel">
+            <div className="panel-header">
+              <div><p className="eyebrow">Recruitment watch</p><h2>Contract risk</h2></div>
+              <span className="risk-summary">{contractsExpiringSoon} players need review</span>
+            </div>
+            <ContractRiskTable players={expiringPlayers} />
           </article>
         </section>
       </div>

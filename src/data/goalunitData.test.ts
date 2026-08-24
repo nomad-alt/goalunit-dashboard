@@ -7,6 +7,7 @@ import {
   getInsight,
   getFairPriceConcentration,
   getKpiExtremes,
+  getPlayersExpiringWithinYears,
   getRevenueToAssetsRatio,
   getTopPlayer,
   getYearOverYearKpi,
@@ -52,6 +53,15 @@ describe("Goalunit frontend data layer", () => {
     expect(getRevenueToAssetsRatio(selectedClub)).toBeCloseTo(67.1, 1);
     expect(getYearOverYearKpi(selectedClub, clubs)).toBeCloseTo(-8.9, 1);
     expect(getYearOverYearKpi(clubs[0], clubs)).toBeNull();
+  });
+
+  it("returns expiring players ordered by contract date", () => {
+    const expiringPlayers = getPlayersExpiringWithinYears(selectedSeasonPlayers, "2024/2025");
+
+    expect(expiringPlayers).toHaveLength(6);
+    expect(expiringPlayers[0].playerName).toBe("Leandro Trossard");
+    expect(expiringPlayers[0].contractExpiration).toBe("2026-06-30");
+    expect(expiringPlayers.every((player) => player.clubId === selectedClub.clubId)).toBe(true);
   });
 
   it("finds the highest and lowest Transfer KPI clubs", () => {

@@ -53,6 +53,12 @@ export const getContractExpirationsWithinYears = (clubPlayers: PlayerRecord[], s
   const seasonEndYear = Number(seasonName.slice(-4))
   return clubPlayers.filter((player) => Number(player.contractExpiration.slice(0, 4)) <= seasonEndYear + years).length
 }
+export const getPlayersExpiringWithinYears = (clubPlayers: PlayerRecord[], seasonName: string, years = 2) => {
+  const seasonEndYear = Number(seasonName.slice(-4))
+  return clubPlayers
+    .filter((player) => Number(player.contractExpiration.slice(0, 4)) <= seasonEndYear + years)
+    .sort((firstPlayer, secondPlayer) => firstPlayer.contractExpiration.localeCompare(secondPlayer.contractExpiration))
+}
 export const getRevenueToAssetsRatio = (club: ClubRecord) => club.totalAssets ? (club.totalRevenues / club.totalAssets) * 100 : 0
 export const getYearOverYearKpi = (club: ClubRecord, clubRecords: ClubRecord[]) => {
   const previousSeason = `${Number(club.seasonName.slice(0, 4)) - 1}/${Number(club.seasonName.slice(-4)) - 1}`
