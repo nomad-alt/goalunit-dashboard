@@ -4,6 +4,7 @@ import {
   clubs,
   getContractExpirationsWithinYears,
   getClubPlayers,
+  getAverageTransferKpi,
   getInsight,
   getFairPriceConcentration,
   getKpiExtremes,
@@ -11,6 +12,7 @@ import {
   getRevenueToAssetsRatio,
   getTopPlayer,
   getYearOverYearKpi,
+  formatMillions,
   mainInsight,
   selectedClub,
   selectedSeasonPlayers,
@@ -32,6 +34,16 @@ describe("Goalunit frontend data layer", () => {
     expect(topPlayer.fairPrice).toBe(130024906);
   });
 
+  it("ranks players by fair price and handles an empty ranking", () => {
+    const ranking = getTopPlayer([
+      { ...selectedSeasonPlayers[0], fairPrice: 10 },
+      { ...selectedSeasonPlayers[1], fairPrice: 20 },
+    ]);
+
+    expect(ranking.playerName).toBe(selectedSeasonPlayers[1].playerName);
+    expect(getTopPlayer([])).toBeUndefined();
+  });
+
   it("recalculates the player view and insight for another club", () => {
     const cityClub = clubs.find((club) => club.clubName === "Manchester City" && club.seasonName === "2024/2025");
     expect(cityClub).toBeDefined();
@@ -46,6 +58,11 @@ describe("Goalunit frontend data layer", () => {
   it("calculates the average Transfer KPI from every club record", () => {
     expect(clubs.filter((club) => club.seasonName === selectedClub.seasonName)).toHaveLength(4);
     expect(averageTransferKpi).toBeCloseTo(21.85, 2);
+  });
+
+  it("calculates averages from supplied records and handles empty data", () => {
+    expect(getAverageTransferKpi([clubs[0], clubs[1]])).toBeCloseTo(26.65, 2);
+    expect(getAverageTransferKpi([])).toBe(0);
   });
 
   it("calculates contract risk, revenue efficiency, and year-over-year movement", () => {
@@ -83,5 +100,10 @@ describe("Goalunit frontend data layer", () => {
     expect(transferKpiDelta).toBe(0.9);
     expect(transferKpiDeltaPercent).toBeCloseTo(3.89, 2);
     expect(mainInsight).toBe("Arsenal's Transfer KPI is 0.9 points above the sample average (3.9%). Highest: Manchester United (26.5); lowest: Liverpool (12.7). Top three players represent 48.8% of squad fair price.");
+  });
+
+  it("formats currency values in millions", () => {
+    expect(formatMillions(130024906)).toBe("£130M");
+    expect(formatMillions(0)).toBe("£0M");
   });
 });

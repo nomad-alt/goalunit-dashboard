@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import {
   clubs,
+  dataAsOf,
   formatMillions,
   getAverageTransferKpi,
   getContractExpirationsWithinYears,
@@ -104,6 +105,7 @@ function App() {
               A concise view of club value, market position, and recruitment
               context.
             </p>
+            <p className="data-provenance">Data as of {dataAsOf} · Source snapshot: Goalunit CSV exports</p>
           </div>
           <div className="selection-controls" aria-label="Dashboard filters">
             <label>

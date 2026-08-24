@@ -46,6 +46,8 @@ The current prototype uses a compact, typed dataset in [`src/data/goalunitData.t
 - Contract expiration
 - Club-to-player mapping for the current club-specific sample
 
+The dashboard labels the source snapshot as `2025-05-19`. Transfer KPI comparisons use the mean of all clubs in the selected season. Fair-price leaders are sorted in descending order by `fairPrice`, while contract risk includes players whose `contractExpiration` falls within two years of the season end.
+
 The original CSV files are not loaded directly by the browser. In a production version, the files could be processed by a Python or Airflow pipeline, stored in PostgreSQL, and exposed to the frontend through an API.
 
 To regenerate a typed dataset from the supplied files:
