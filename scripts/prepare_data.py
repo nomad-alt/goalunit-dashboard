@@ -5,7 +5,6 @@ import argparse
 import csv
 from pathlib import Path
 
-
 CLUB_FIELDS = (
     "competitionName",
     "seasonName",
