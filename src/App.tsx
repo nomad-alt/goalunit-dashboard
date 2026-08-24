@@ -133,7 +133,7 @@ function App() {
           <article className="panel table-panel">
             <div className="panel-header">
               <div>
-                <p className="eyebrow">Player search sample</p>
+                <p className="eyebrow">Selected club squad</p>
                 <h2>Fair price leaders</h2>
               </div>
               <button className="text-button" type="button">
@@ -200,13 +200,16 @@ function App() {
               <div className="goal-row">
                 <span className="goal-dot goal-dot--blue"></span>
                 <div className="goal-copy">
-                  <strong>Players above £100M fair price</strong>
-                  <span>Selected {selectedClub.seasonName} sample</span>
+                  <strong>Players above £50M fair price</strong>
+                  <span>
+                    {selectedClub.clubName} squad sample ·{" "}
+                    {selectedClub.seasonName}
+                  </span>
                 </div>
                 <div className="progress-value">
                   {
                     selectedSeasonPlayers.filter(
-                      (player) => player.fairPrice >= 100000000,
+                      (player) => player.fairPrice >= 50000000,
                     ).length
                   }
                 </div>
@@ -215,7 +218,7 @@ function App() {
                 <span
                   className="progress-fill progress-fill--blue"
                   style={{
-                    width: `${(selectedSeasonPlayers.filter((player) => player.fairPrice >= 100000000).length / selectedSeasonPlayers.length) * 100}%`,
+                    width: `${(selectedSeasonPlayers.filter((player) => player.fairPrice >= 50000000).length / selectedSeasonPlayers.length) * 100}%`,
                   }}
                 ></span>
               </div>
