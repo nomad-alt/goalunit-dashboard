@@ -1,4 +1,16 @@
 import "./App.css";
+import {
+  averageTransferKpi,
+  clubs,
+  formatMillions,
+  mainInsight,
+  selectedClub,
+  selectedSeasonPlayers,
+  topPlayer,
+  transferKpiDelta,
+} from "./data/goalunitData";
+import { PlayerValueTable } from "./components/PlayerValueTable";
+import { TransferKpiChart } from "./components/TransferKpiChart";
 
 function App() {
   return (
@@ -22,8 +34,8 @@ function App() {
           type="button"
           aria-label="Open profile menu"
         >
-          <span className="avatar">RM</span>
-          <span className="profile-name">Real Madrid (M)</span>
+          <span className="avatar">AR</span>
+          <span className="profile-name">{selectedClub.clubName}</span>
           <span className="chevron" aria-hidden="true">
             ⌄
           </span>
@@ -33,9 +45,11 @@ function App() {
       <div className="dashboard" id="overview">
         <section className="welcome-row">
           <div>
-            <p className="eyebrow">Club overview · 2025/26 season</p>
+            <p className="eyebrow">
+              Club overview · {selectedClub.seasonName} season
+            </p>
             <h1>
-              Real Madrid <span className="accent-dot">(M)</span>
+              {selectedClub.clubName} <span className="accent-dot">.</span>
             </h1>
             <p className="subtitle">
               A quick read on squad structure, performance, and market value.
@@ -52,10 +66,12 @@ function App() {
               <span className="stat-icon">↗</span>
               <span>Team performance</span>
             </div>
-            <strong>735</strong>
+            <strong>{selectedClub.transferKpi}</strong>
             <div className="stat-footer">
               <span>Power rank</span>
-              <span className="trend positive">+4.2%</span>
+              <span className="trend positive">
+                +{transferKpiDelta.toFixed(1)}
+              </span>
             </div>
           </article>
           <article className="stat-card stat-card--cream">
@@ -63,12 +79,12 @@ function App() {
               <span className="stat-icon">✓</span>
               <span>Financial health</span>
             </div>
-            <strong>
-              €1.18<span className="unit">B</span>
-            </strong>
+            <strong>{formatMillions(selectedClub.totalAssets)}</strong>
             <div className="stat-footer">
               <span>Fair squad price</span>
-              <span className="trend positive">+6.8%</span>
+              <span className="trend positive">
+                {formatMillions(selectedClub.totalRevenues)} rev.
+              </span>
             </div>
           </article>
           <article className="stat-card stat-card--coral">
@@ -99,6 +115,37 @@ function App() {
           </article>
         </section>
 
+        <section className="visual-grid" aria-label="Club and player analysis">
+          <article className="panel chart-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Market comparison</p>
+                <h2>Transfer KPI by club</h2>
+              </div>
+              <span className="panel-note">2024/25 · Premier League</span>
+            </div>
+            <TransferKpiChart
+              clubs={clubs}
+              selectedClubName={selectedClub.clubName}
+            />
+          </article>
+          <article className="panel table-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Player search sample</p>
+                <h2>Fair price leaders</h2>
+              </div>
+              <button className="text-button" type="button">
+                View all <span aria-hidden="true">→</span>
+              </button>
+            </div>
+            <PlayerValueTable
+              players={selectedSeasonPlayers}
+              formatValue={formatMillions}
+            />
+          </article>
+        </section>
+
         <section className="content-grid">
           <article className="panel progress-panel" id="goals">
             <div className="panel-header">
@@ -114,43 +161,61 @@ function App() {
               <div className="goal-row">
                 <span className="goal-dot goal-dot--green"></span>
                 <div className="goal-copy">
-                  <strong>Share of market value · U25 players</strong>
-                  <span>Real Madrid 47% · League average 54%</span>
+                  <strong>Highest fair price in sample</strong>
+                  <span>
+                    {topPlayer.playerName} ·{" "}
+                    {formatMillions(topPlayer.fairPrice)}
+                  </span>
                 </div>
-                <div className="progress-value">47%</div>
+                <div className="progress-value">
+                  {formatMillions(topPlayer.fairPrice)}
+                </div>
               </div>
               <div className="progress-track">
                 <span
                   className="progress-fill progress-fill--green"
-                  style={{ width: "47%" }}
+                  style={{ width: "100%" }}
                 ></span>
               </div>
               <div className="goal-row">
                 <span className="goal-dot goal-dot--orange"></span>
                 <div className="goal-copy">
-                  <strong>Playing time · U23 players</strong>
-                  <span>Real Madrid 32% · League average 30%</span>
+                  <strong>Transfer KPI</strong>
+                  <span>
+                    {selectedClub.clubName} · dataset average{" "}
+                    {averageTransferKpi.toFixed(1)}
+                  </span>
                 </div>
-                <div className="progress-value">32%</div>
+                <div className="progress-value">{selectedClub.transferKpi}</div>
               </div>
               <div className="progress-track">
                 <span
                   className="progress-fill progress-fill--orange"
-                  style={{ width: "32%" }}
+                  style={{
+                    width: `${Math.min((selectedClub.transferKpi / 30) * 100, 100)}%`,
+                  }}
                 ></span>
               </div>
               <div className="goal-row">
                 <span className="goal-dot goal-dot--blue"></span>
                 <div className="goal-copy">
-                  <strong>Average contract length</strong>
-                  <span>Real Madrid 34 months · League average 29</span>
+                  <strong>Players above £100M fair price</strong>
+                  <span>Selected {selectedClub.seasonName} sample</span>
                 </div>
-                <div className="progress-value">34 mo</div>
+                <div className="progress-value">
+                  {
+                    selectedSeasonPlayers.filter(
+                      (player) => player.fairPrice >= 100000000,
+                    ).length
+                  }
+                </div>
               </div>
               <div className="progress-track">
                 <span
                   className="progress-fill progress-fill--blue"
-                  style={{ width: "68%" }}
+                  style={{
+                    width: `${(selectedSeasonPlayers.filter((player) => player.fairPrice >= 100000000).length / selectedSeasonPlayers.length) * 100}%`,
+                  }}
                 ></span>
               </div>
             </div>
@@ -173,8 +238,8 @@ function App() {
               <div className="activity-item">
                 <span className="activity-badge activity-badge--lime">✓</span>
                 <div>
-                  <strong>Squad value is rising</strong>
-                  <span>Fair price up 6.8% this season</span>
+                  <strong>Main insight</strong>
+                  <span>{mainInsight}</span>
                 </div>
                 <time>Today</time>
               </div>
