@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "prepare:data": "python3 scripts/prepare_data.py",
     "preview": "vite preview"
   },
   "dependencies": {

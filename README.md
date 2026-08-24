@@ -53,6 +53,16 @@ The current prototype uses a compact, typed dataset in [`src/data/goalunitData.t
 
 The original CSV files are not loaded directly by the browser. In a production version, the files could be processed by a Python or Airflow pipeline, stored in PostgreSQL, and exposed to the frontend through an API.
 
+To regenerate a typed dataset from the supplied files:
+
+```bash
+npm run prepare:data -- \
+  --clubs /path/to/clubs.csv \
+  --players /path/to/players.csv
+```
+
+This writes `src/data/goalunitData.generated.ts`. Empty CSV values become `null`, numeric fields are converted to numbers, and duplicate player snapshots are reduced to the highest fair-price record for each player and season. The supplied `players.csv` does not include `clubId`, so generated player records retain `clubId: null` until a player-to-club join is provided.
+
 ## Project Structure
 
 ```text
