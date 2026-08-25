@@ -419,7 +419,10 @@ function App() {
                 {contractsExpiringSoon} players need review
               </span>
             </div>
-            <ContractRiskTable players={expiringPlayers} />
+            <ContractRiskTable
+              players={expiringPlayers}
+              seasonName={activeClub.seasonName}
+            />
           </article>
         </section>
       </div>
