@@ -9,9 +9,14 @@ import {
   getDefaultClubOverview,
   getOverviewWithFallback,
 } from "./data/goalunitRepository";
+import { clubs } from "./data/goalunitData";
 import { ContractRiskTable } from "./components/ContractRiskTable";
+import { ContractTimeline } from "./components/ContractTimeline";
+import { FairPriceChart } from "./components/FairPriceChart";
+import { KpiTrendChart } from "./components/KpiTrendChart";
 import { PlayerSearchPanel } from "./components/PlayerSearchPanel";
 import { PlayerValueTable } from "./components/PlayerValueTable";
+import { RevenueAssetsChart } from "./components/RevenueAssetsChart";
 import { TransferKpiChart } from "./components/TransferKpiChart";
 
 function App() {
@@ -251,6 +256,51 @@ function App() {
               players={activePlayers}
               formatValue={formatMillions}
               showAll={showAllPlayers}
+            />
+          </article>
+        </section>
+
+        <section className="analysis-grid" aria-label="Visual analysis">
+          <article className="panel analysis-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Season trend</p>
+                <h2>Transfer KPI over time</h2>
+              </div>
+            </div>
+            <KpiTrendChart clubs={clubs} clubName={activeClub.clubName} />
+          </article>
+          <article className="panel analysis-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Financial structure</p>
+                <h2>Revenue vs total assets</h2>
+              </div>
+            </div>
+            <RevenueAssetsChart
+              clubs={seasonClubs}
+              selectedClubName={activeClub.clubName}
+            />
+          </article>
+          <article className="panel analysis-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Squad value</p>
+                <h2>Fair price distribution</h2>
+              </div>
+            </div>
+            <FairPriceChart players={activePlayers} />
+          </article>
+          <article className="panel analysis-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Contract planning</p>
+                <h2>Expiry timeline</h2>
+              </div>
+            </div>
+            <ContractTimeline
+              players={activePlayers}
+              seasonName={activeClub.seasonName}
             />
           </article>
         </section>
