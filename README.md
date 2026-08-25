@@ -1,71 +1,164 @@
 # Goalunit Club Analysis
 
-A football club analytics dashboard built with React, TypeScript, and Vite using a sample of Goalunit club and player datasets.
+A football intelligence dashboard for exploring club performance, financial structure, squad value, and contract risk. The project demonstrates an end-to-end analytics workflow: validating raw CSV exports, modelling football data, exposing an API-shaped repository, and presenting the results through an interactive React dashboard.
 
-**Live demo:** [goalunit-dashboard.vercel.app](https://goalunit-dashboard.vercel.app/)
+[View the live demo](https://goalunit-dashboard.vercel.app/) · [Explore the data pipeline](#dataset-methodology) · [Review the architecture](#architecture)
 
-The dashboard demonstrates a small data-to-interface workflow for recruitment and club analysis:
+## Product screenshots
 
-- Compare Transfer KPI values across Premier League clubs.
-- Switch between clubs and seasons with recalculated dashboard values.
-- Rank each selected club's players by estimated fair price.
-- Display contract expiration years alongside player values.
-- Derive insights from KPI extremes, fair-price concentration, contract risk, revenue efficiency, and year-over-year movement.
-- Surface club value, revenue, squad structure, and recruitment signals in a responsive dashboard.
+[![Goalunit dashboard overview](docs/screenshots/dashboard-overview.jpg)](https://goalunit-dashboard.vercel.app/)
 
-## Analytical Insight
+_Club and season filters, performance indicators, market comparison, and fair-price leaders._
 
-In the current 2024/25 sample, Arsenal's Transfer KPI is 0.9 points above the four-club average, or 3.9% higher. Arsenal's three highest-valued players also represent 48.8% of the selected squad sample's total fair price, providing a simple signal of value concentration.
+![Goalunit dashboard analytics](docs/screenshots/dashboard-analytics.jpg)
 
-## Tech Stack
+_Season movement, financial structure, player-value distribution, and contract-expiry planning._
 
-- React 19
-- TypeScript
+## What the dashboard does
+
+- Compares Transfer KPI values across Premier League clubs.
+- Switches between clubs and seasons while recalculating every dependent metric.
+- Ranks players by estimated fair price and supports multi-field player search.
+- Highlights contracts expiring within two years of the selected season.
+- Compares revenue with total assets and shows year-over-year KPI movement.
+- Generates concise findings about performance, value concentration, and contract exposure.
+- Reads from a Go API when available and falls back to the local typed dataset.
+
+## Example analytical findings
+
+The figures below describe the curated `2024/2025` portfolio sample and should not be interpreted as league-wide conclusions:
+
+- Arsenal records a **22.7 Transfer KPI**, approximately **0.9 points above** the four-club sample average.
+- Manchester United has the sample's highest Transfer KPI at **26.5**, while Liverpool has the lowest at **12.7**.
+- Arsenal's top three players account for **48.8%** of the selected squad sample's total fair price, indicating concentrated player value.
+- Arsenal's revenue-to-assets ratio is **67.1%** based on £760.1M revenue and £1.13B total assets.
+- Six Arsenal players in the sample have contracts expiring by the end of the two-year review window.
+- Arsenal's Transfer KPI decreases by **8.9 points** from `2023/2024` to `2024/2025` in the sample.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph ingestion[Data preparation]
+    CSV[Goalunit CSV exports] --> PY[Python preparation script]
+    PY --> VALIDATE[Schema and quality validation]
+    VALIDATE --> TS[Generated TypeScript dataset]
+    VALIDATE --> DBSEED[PostgreSQL seed data]
+  end
+
+  subgraph application[Application]
+    UI[React + TypeScript dashboard] --> REPO[Repository boundary]
+    REPO -->|API first| API[Go HTTP API]
+    API --> PG[(PostgreSQL)]
+    REPO -->|development fallback| LOCAL[Curated local dataset]
+    TS -.-> LOCAL
+    DBSEED -.-> PG
+  end
+```
+
+The React components depend on [`src/data/goalunitRepository.ts`](src/data/goalunitRepository.ts), rather than importing transport details directly. The repository requests `/api/club-overview` and normalizes the response to a single `ClubOverview` model. If the service is unavailable, it returns the equivalent view from local TypeScript data.
+
+The backend prototype in [`backend/`](backend/) already includes a Go HTTP service, PostgreSQL schema, seed data, and overview query. During local development, Vite proxies `/api` to `http://localhost:8080`.
+
+## Dataset methodology
+
+### Source and scope
+
+The repository includes two Goalunit-style source exports:
+
+- [`src/data/clubs.csv`](src/data/clubs.csv): 40 club-season records across `2023/2024` and `2024/2025`.
+- [`src/data/players.csv`](src/data/players.csv): 1,148 raw player snapshots across the same two seasons.
+
+The visible dashboard is intentionally smaller than the source exports. Its curated local model contains four comparison clubs across two seasons and a selected player sample suitable for demonstrating the analytical interactions.
+
+### Preparation rules
+
+[`scripts/prepare_data.py`](scripts/prepare_data.py) converts the CSV exports into typed frontend-ready records:
+
+1. Read UTF-8 CSV files and trim surrounding whitespace.
+2. Convert blank values to `null` and parse numeric columns.
+3. Preserve required club, player, and season identifiers.
+4. Deduplicate club records by `clubId + seasonId`.
+5. Deduplicate player snapshots by `playerId + seasonId`, retaining the highest fair-price observation.
+6. Sort prepared players by fair price before generating TypeScript.
+7. Validate the complete prepared collection before writing any output.
+
+The supplied player export does not contain `clubId`. [`src/data/playerClubMap.ts`](src/data/playerClubMap.ts) therefore provides an explicit `playerId + seasonId` assignment for the curated dashboard sample. This avoids inferring club membership from player names.
+
+### Validation contract
+
+The preparation boundary rejects output containing:
+
+- Missing, non-integer, or non-positive club, player, and season IDs.
+- Seasons outside the consecutive `YYYY/YYYY` format.
+- Negative or non-finite asset, revenue, or fair-price values.
+- Fair prices above the €1 billion sanity threshold.
+- Contract dates that are not real ISO `YYYY-MM-DD` calendar dates.
+- Duplicate club-season or player-season records.
+
+Validation errors are aggregated so a failed preparation run reports every discovered issue and writes no partial output.
+
+### Derived metrics
+
+- **Season average:** arithmetic mean of Transfer KPI across the selected comparison clubs.
+- **KPI delta:** selected club Transfer KPI minus the season sample average.
+- **Year-over-year movement:** current Transfer KPI minus the matching club's previous-season KPI.
+- **Revenue-to-assets ratio:** `total revenues / total assets × 100`.
+- **Fair-price concentration:** top-three player fair prices divided by total squad-sample fair price.
+- **Contract risk:** players whose contract year is no later than two years after the selected season end.
+
+## Known limitations
+
+- The data is a static portfolio snapshot dated **2025-05-19**, not a live Goalunit feed.
+- The dashboard uses a deliberately small club and player sample; findings are illustrative rather than comprehensive.
+- Player-to-club assignments are manually curated because the player CSV lacks a club identifier.
+- Fair price is treated as a supplied estimate; this project does not reproduce or audit its underlying valuation model.
+- Contract risk uses season-end years rather than a precise rolling date calculation.
+- Currency is presented consistently in the interface, but the source export does not provide a per-record currency field.
+- The local fallback and database seed must currently be kept in sync manually.
+- Authentication, authorization, pagination, caching, observability, and production API rate controls are outside the prototype scope.
+
+## Future Go/PostgreSQL architecture
+
+The next production-oriented iteration would make PostgreSQL the authoritative store and remove the curated frontend data bridge:
+
+```mermaid
+flowchart LR
+  EXPORTS[Scheduled source exports] --> PIPELINE[Validated ingestion job]
+  PIPELINE --> RAW[(Raw import tables)]
+  RAW --> MODEL[Transformation and quality checks]
+  MODEL --> CORE[(PostgreSQL analytics schema)]
+  CORE --> GO[Go query service]
+  GO --> CACHE[HTTP cache / CDN]
+  CACHE --> WEB[React dashboard]
+  GO --> OBS[Logs, metrics, traces]
+```
+
+Planned improvements include authoritative player-club-season relationships, database constraints matching the preparation validator, versioned API contracts, server-side filtering and pagination, scheduled ingestion, data-quality reporting, and deployment health checks.
+
+## Tech stack
+
+- React 19 and TypeScript
 - Vite
-- CSS
-- Oxlint
-- Vitest
+- CSS and inline SVG visualizations
+- Vitest, Testing Library, and jsdom
+- Python CSV preparation and validation
+- Go HTTP API prototype
+- PostgreSQL schema and seed data
+- GitHub Actions CI
 
-## Getting Started
+## Getting started
 
-Install dependencies:
+Install dependencies and start the frontend:
 
 ```bash
 npm install
-```
-
-Start the development server:
-
-```bash
 npm run dev
 ```
 
-The app is then available at the local URL shown by Vite, usually `http://localhost:5173`.
+The application is available at the local URL shown by Vite, usually `http://localhost:5173`.
 
-## Data
-
-The current prototype uses a compact, typed dataset in [`src/data/goalunitData.ts`](src/data/goalunitData.ts). It is based on the supplied `clubs.csv` and `players.csv` files and includes:
-
-- Club competition and season
-- Transfer KPI
-- Total assets and revenue
-- Player fair price
-- Contract expiration
-- Club-to-player mapping for the current club-specific sample
-
-The dashboard labels the source snapshot as `2025-05-19`. Transfer KPI comparisons use the mean of all clubs in the selected season. Fair-price leaders are sorted in descending order by `fairPrice`, while contract risk includes players whose `contractExpiration` falls within two years of the season end.
-
-The original CSV files are not loaded directly by the browser. In a production version, the files could be processed by a Python or Airflow pipeline, stored in PostgreSQL, and exposed to the frontend through an API.
-
-## Data Boundary
-
-The React application reads through [`src/data/goalunitRepository.ts`](src/data/goalunitRepository.ts), which provides the API-shaped `getClubOverview()` function and selector helpers. The repository currently uses local TypeScript data, but it is designed to be replaced by a Go/PostgreSQL service without changing the dashboard components.
-
-The repository is now API-first: it requests the Go service at `/api/club-overview` and falls back to the local typed dataset when the API is unavailable. During local development, Vite proxies `/api` to `http://localhost:8080`. See [`backend/README.md`](backend/README.md) for PostgreSQL setup.
-
-`getClubOverview()` returns the selected club, season comparison records, player rankings, contract-risk records, financial ratios, year-over-year KPI movement, and the generated insight in one view model.
-
-To regenerate a typed dataset from the supplied files:
+To regenerate the typed dataset from CSV files:
 
 ```bash
 npm run prepare:data -- \
@@ -73,58 +166,26 @@ npm run prepare:data -- \
   --players /path/to/players.csv
 ```
 
-This writes `src/data/goalunitData.generated.ts`. Empty CSV values become `null`, numeric fields are converted to numbers, and duplicate player snapshots are reduced to the highest fair-price record for each player and season. Before writing, an explicit validation layer checks required positive IDs, consecutive `YYYY/YYYY` seasons, non-negative financial values, fair prices between zero and the €1 billion sanity cap, valid ISO contract dates, and unique club/player season records. All validation problems are reported together and no output is written when validation fails. The supplied `players.csv` does not include `clubId`, so the preparation output retains `clubId: null`; the current dashboard sample uses an explicit club mapping for its selected-club view.
+This writes `src/data/goalunitData.generated.ts`. See [`backend/README.md`](backend/README.md) for PostgreSQL and Go service setup.
 
-## Project Structure
-
-```text
-src/
-  components/
-    PlayerValueTable.tsx
-    TransferKpiChart.tsx
-  data/
-    goalunitData.ts
-    goalunitData.test.ts
-    goalunitRepository.ts
-    goalunitRepository.test.ts
-backend/
-  main.go
-  queries.go
-  schema.sql
-  README.md
-scripts/
-  prepare_data.py
-tests/
-  test_prepare_data.py
-App.tsx
-App.css
-index.css
-```
-
-## Validation
-
-Run the production build:
-
-```bash
-npm run build
-```
-
-Run linting:
-
-```bash
-npm run lint
-```
-
-Run the data preparation tests:
+## Quality checks
 
 ```bash
 npm test
+npm run build
+npm run lint
 ```
 
-The test command runs both the Python preparation tests and the Vitest frontend data-layer tests.
+The test command runs the Python preparation tests and the Vitest data/component suites. The GitHub Actions workflow runs clean installation, tests, production build, and linting for every push and pull request.
 
-## Scope
+## Project structure
 
-This is a portfolio prototype for exploring Goalunit-style football intelligence. The current sample supports club-specific views for the four comparison clubs and includes prior-season club records for year-over-year KPI analysis. Player-to-club relationships should eventually come from a maintained source dataset or backend join rather than manual mapping.
-
-For this prototype, the supplied player rows are linked through [`src/data/playerClubMap.ts`](src/data/playerClubMap.ts), using `playerId` and `seasonId` as a composite key. This keeps club membership explicit and prevents players from appearing in the wrong club view. The mapping is a curated bridge until an authoritative squad dataset is available.
+```text
+backend/                 Go API, SQL schema, queries, and seed data
+docs/screenshots/        Portfolio screenshots
+scripts/prepare_data.py  CSV preparation and validation
+src/components/          Dashboard tables, charts, and search UI
+src/data/                Source CSVs, typed data, mappings, and repository
+src/App.tsx              Dashboard composition and interactions
+tests/                   Python data-pipeline tests
+```
