@@ -19,6 +19,9 @@ export type PlayerRecord = {
   seasonName: string
   fairPrice: number
   contractExpiration: string
+  age: number
+  position: string
+  nationality: string
 }
 
 export const clubs: ClubRecord[] = [
@@ -33,20 +36,20 @@ export const clubs: ClubRecord[] = [
 ]
 
 export const players: PlayerRecord[] = [
-  { playerId: 328209, seasonId: 862, clubId: 2175, playerName: "Erling Haaland", seasonName: "2024/2025", fairPrice: 197384771, contractExpiration: "2034-06-30" },
-  { playerId: 406808, seasonId: 862, clubId: 1570, playerName: "Cole Palmer", seasonName: "2024/2025", fairPrice: 159019479, contractExpiration: "2033-06-30" },
-  { playerId: 385494, seasonId: 862, clubId: 1255, playerName: "Bukayo Saka", seasonName: "2024/2025", fairPrice: 130024906, contractExpiration: "2027-06-30" },
-  { playerId: 342411, seasonId: 862, clubId: 2175, playerName: "Phil Foden", seasonName: "2024/2025", fairPrice: 113740798, contractExpiration: "2027-06-30" },
-  { playerId: 299748, seasonId: 862, clubId: 1255, playerName: "Declan Rice", seasonName: "2024/2025", fairPrice: 110001138, contractExpiration: "2028-06-30" },
-  { playerId: 309541, seasonId: 862, clubId: 2263, playerName: "Alexander Isak", seasonName: "2024/2025", fairPrice: 113735366, contractExpiration: "2028-06-30" },
-  { playerId: 258117, seasonId: 862, clubId: 1255, playerName: "Martin Ødegaard", seasonName: "2024/2025", fairPrice: 96485573, contractExpiration: "2028-06-30" },
-  { playerId: 426448, seasonId: 862, clubId: 1255, playerName: "William Saliba", seasonName: "2024/2025", fairPrice: 79009240, contractExpiration: "2027-06-30" },
-  { playerId: 409931, seasonId: 862, clubId: 1255, playerName: "Gabriel Martinelli", seasonName: "2024/2025", fairPrice: 61752995, contractExpiration: "2027-06-30" },
-  { playerId: 320421, seasonId: 862, clubId: 1255, playerName: "Gabriel Magalhães", seasonName: "2024/2025", fairPrice: 59161995, contractExpiration: "2027-06-30" },
-  { playerId: 365347, seasonId: 862, clubId: 1255, playerName: "Jurrien Timber", seasonName: "2024/2025", fairPrice: 58887071, contractExpiration: "2028-06-30" },
-  { playerId: 341716, seasonId: 862, clubId: 1255, playerName: "Ben White", seasonName: "2024/2025", fairPrice: 37125854, contractExpiration: "2028-06-30" },
-  { playerId: 157546, seasonId: 862, clubId: 1255, playerName: "Leandro Trossard", seasonName: "2024/2025", fairPrice: 29994298, contractExpiration: "2026-06-30" },
-  { playerId: 271857, seasonId: 862, clubId: 1255, playerName: "Gabriel Jesus", seasonName: "2024/2025", fairPrice: 27689477, contractExpiration: "2027-06-30" },
+  { playerId: 328209, seasonId: 862, clubId: 2175, playerName: "Erling Haaland", seasonName: "2024/2025", fairPrice: 197384771, contractExpiration: "2034-06-30", age: 24, position: "Centre-forward", nationality: "Norway" },
+  { playerId: 406808, seasonId: 862, clubId: 1570, playerName: "Cole Palmer", seasonName: "2024/2025", fairPrice: 159019479, contractExpiration: "2033-06-30", age: 23, position: "Attacking midfielder", nationality: "England" },
+  { playerId: 385494, seasonId: 862, clubId: 1255, playerName: "Bukayo Saka", seasonName: "2024/2025", fairPrice: 130024906, contractExpiration: "2027-06-30", age: 24, position: "Right winger", nationality: "England" },
+  { playerId: 342411, seasonId: 862, clubId: 2175, playerName: "Phil Foden", seasonName: "2024/2025", fairPrice: 113740798, contractExpiration: "2027-06-30", age: 25, position: "Attacking midfielder", nationality: "England" },
+  { playerId: 299748, seasonId: 862, clubId: 1255, playerName: "Declan Rice", seasonName: "2024/2025", fairPrice: 110001138, contractExpiration: "2028-06-30", age: 26, position: "Defensive midfielder", nationality: "England" },
+  { playerId: 309541, seasonId: 862, clubId: 2263, playerName: "Alexander Isak", seasonName: "2024/2025", fairPrice: 113735366, contractExpiration: "2028-06-30", age: 26, position: "Centre-forward", nationality: "Sweden" },
+  { playerId: 258117, seasonId: 862, clubId: 1255, playerName: "Martin Ødegaard", seasonName: "2024/2025", fairPrice: 96485573, contractExpiration: "2028-06-30", age: 26, position: "Attacking midfielder", nationality: "Norway" },
+  { playerId: 426448, seasonId: 862, clubId: 1255, playerName: "William Saliba", seasonName: "2024/2025", fairPrice: 79009240, contractExpiration: "2027-06-30", age: 24, position: "Centre-back", nationality: "France" },
+  { playerId: 409931, seasonId: 862, clubId: 1255, playerName: "Gabriel Martinelli", seasonName: "2024/2025", fairPrice: 61752995, contractExpiration: "2027-06-30", age: 24, position: "Left winger", nationality: "Brazil" },
+  { playerId: 320421, seasonId: 862, clubId: 1255, playerName: "Gabriel Magalhães", seasonName: "2024/2025", fairPrice: 59161995, contractExpiration: "2027-06-30", age: 27, position: "Centre-back", nationality: "Brazil" },
+  { playerId: 365347, seasonId: 862, clubId: 1255, playerName: "Jurrien Timber", seasonName: "2024/2025", fairPrice: 58887071, contractExpiration: "2028-06-30", age: 24, position: "Right-back", nationality: "Netherlands" },
+  { playerId: 341716, seasonId: 862, clubId: 1255, playerName: "Ben White", seasonName: "2024/2025", fairPrice: 37125854, contractExpiration: "2028-06-30", age: 27, position: "Right-back", nationality: "England" },
+  { playerId: 157546, seasonId: 862, clubId: 1255, playerName: "Leandro Trossard", seasonName: "2024/2025", fairPrice: 29994298, contractExpiration: "2026-06-30", age: 30, position: "Left winger", nationality: "Belgium" },
+  { playerId: 271857, seasonId: 862, clubId: 1255, playerName: "Gabriel Jesus", seasonName: "2024/2025", fairPrice: 27689477, contractExpiration: "2027-06-30", age: 28, position: "Centre-forward", nationality: "Brazil" },
 ]
 
 export const dataAsOf = "2025-05-19"

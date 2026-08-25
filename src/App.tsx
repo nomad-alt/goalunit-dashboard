@@ -7,9 +7,10 @@ import {
   getAvailableSeasons,
   getClubOverview,
   getDefaultClubOverview,
-  fetchClubOverview,
+  getOverviewWithFallback,
 } from "./data/goalunitRepository";
 import { ContractRiskTable } from "./components/ContractRiskTable";
+import { PlayerSearchPanel } from "./components/PlayerSearchPanel";
 import { PlayerValueTable } from "./components/PlayerValueTable";
 import { TransferKpiChart } from "./components/TransferKpiChart";
 
@@ -26,10 +27,17 @@ function App() {
   const [overview, setOverview] = useState(defaultOverview);
   useEffect(() => {
     let current = true;
-    fetchClubOverview(selectedClubId, selectedSeason)
-      .then((remoteOverview) => { if (current) setOverview(remoteOverview); })
-      .catch(() => { if (current) setOverview(getClubOverview(selectedClubId, selectedSeason)); });
-    return () => { current = false; };
+    getOverviewWithFallback(selectedClubId, selectedSeason)
+      .then((remoteOverview) => {
+        if (current) setOverview(remoteOverview);
+      })
+      .catch(() => {
+        if (current)
+          setOverview(getClubOverview(selectedClubId, selectedSeason));
+      });
+    return () => {
+      current = false;
+    };
   }, [selectedClubId, selectedSeason]);
   const {
     club: activeClub,
@@ -243,6 +251,22 @@ function App() {
               players={activePlayers}
               formatValue={formatMillions}
               showAll={showAllPlayers}
+            />
+          </article>
+        </section>
+
+        <section className="search-section" aria-label="Player search">
+          <article className="panel search-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Player discovery</p>
+                <h2>Player search</h2>
+              </div>
+            </div>
+            <PlayerSearchPanel
+              players={activePlayers}
+              competitionName={activeClub.competitionName}
+              seasonName={activeClub.seasonName}
             />
           </article>
         </section>

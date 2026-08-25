@@ -69,3 +69,15 @@ export const fetchClubOverview = async (clubId: number, seasonName: string): Pro
     expiringPlayers: overview.expiringPlayers ?? [],
   }
 }
+
+export const getOverviewWithFallback = async (clubId: number, seasonName: string): Promise<ClubOverview> => {
+  try {
+    const overview = await fetchClubOverview(clubId, seasonName)
+    if (overview.players.length === 0) {
+      return getClubOverview(clubId, seasonName)
+    }
+    return overview
+  } catch {
+    return getClubOverview(clubId, seasonName)
+  }
+}
