@@ -19,19 +19,19 @@ import { PlayerValueTable } from "./components/PlayerValueTable";
 import { RevenueAssetsChart } from "./components/RevenueAssetsChart";
 import { TransferKpiChart } from "./components/TransferKpiChart";
 
+const slugToId: Record<string, number> = {
+  arsenal: 1255,
+  liverpool: 2121,
+  "manchester-city": 2175,
+  "manchester-united": 2188,
+};
+
+const idToSlug: Record<number, string> = Object.fromEntries(
+  Object.entries(slugToId).map(([slug, id]) => [id, slug]),
+);
+
 function App() {
   const defaultOverview = getDefaultClubOverview();
-
-  // Slug to club ID mapping
-  const slugToId: Record<string, number> = {
-    arsenal: 1255,
-    liverpool: 2121,
-    "manchester-city": 2175,
-    "manchester-united": 2188,
-  };
-  const idToSlug: Record<number, string> = Object.fromEntries(
-    Object.entries(slugToId).map(([slug, id]) => [id, slug]),
-  );
 
   // Initialize from URL parameters or defaults
   const urlParams = new URLSearchParams(window.location.search);
@@ -90,7 +90,7 @@ function App() {
     params.set("season", seasonSlug);
     const newUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
     window.history.replaceState({}, "", newUrl);
-  }, [activeClub.clubId, selectedSeason]);
+  }, [activeClub.clubId, activeClub.clubName, selectedSeason]);
 
   const handleSeasonChange = (seasonName: string) => {
     setSelectedSeason(seasonName);

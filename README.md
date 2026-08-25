@@ -73,7 +73,7 @@ npm run prepare:data -- \
   --players /path/to/players.csv
 ```
 
-This writes `src/data/goalunitData.generated.ts`. Empty CSV values become `null`, numeric fields are converted to numbers, and duplicate player snapshots are reduced to the highest fair-price record for each player and season. The supplied `players.csv` does not include `clubId`, so the preparation output retains `clubId: null`; the current dashboard sample uses an explicit club mapping for its selected-club view.
+This writes `src/data/goalunitData.generated.ts`. Empty CSV values become `null`, numeric fields are converted to numbers, and duplicate player snapshots are reduced to the highest fair-price record for each player and season. Before writing, an explicit validation layer checks required positive IDs, consecutive `YYYY/YYYY` seasons, non-negative financial values, fair prices between zero and the €1 billion sanity cap, valid ISO contract dates, and unique club/player season records. All validation problems are reported together and no output is written when validation fails. The supplied `players.csv` does not include `clubId`, so the preparation output retains `clubId: null`; the current dashboard sample uses an explicit club mapping for its selected-club view.
 
 ## Project Structure
 
