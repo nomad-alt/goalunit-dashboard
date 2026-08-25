@@ -119,3 +119,5 @@ The test command runs both the Python preparation tests and the Vitest frontend 
 ## Scope
 
 This is a portfolio prototype for exploring Goalunit-style football intelligence. The current sample supports club-specific views for the four comparison clubs and includes prior-season club records for year-over-year KPI analysis. Player-to-club relationships should eventually come from a maintained source dataset or backend join rather than manual mapping.
+
+For this prototype, the supplied player rows are linked through [`src/data/playerClubMap.ts`](src/data/playerClubMap.ts), using `playerId` and `seasonId` as a composite key. This keeps club membership explicit and prevents players from appearing in the wrong club view. The mapping is a curated bridge until an authoritative squad dataset is available.

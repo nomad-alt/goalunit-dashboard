@@ -9,7 +9,11 @@ export type ClubRecord = {
   totalRevenues: number
 }
 
+import { playerClubBySourceKey } from "./playerClubMap"
+
 export type PlayerRecord = {
+  playerId: number
+  seasonId: number
   clubId: number
   playerName: string
   seasonName: string
@@ -29,25 +33,25 @@ export const clubs: ClubRecord[] = [
 ]
 
 export const players: PlayerRecord[] = [
-  { clubId: 2175, playerName: "Erling Haaland", seasonName: "2024/2025", fairPrice: 197384771, contractExpiration: "2034-06-30" },
-  { clubId: 1570, playerName: "Cole Palmer", seasonName: "2024/2025", fairPrice: 159019479, contractExpiration: "2033-06-30" },
-  { clubId: 1255, playerName: "Bukayo Saka", seasonName: "2024/2025", fairPrice: 130024906, contractExpiration: "2027-06-30" },
-  { clubId: 2175, playerName: "Phil Foden", seasonName: "2024/2025", fairPrice: 113740798, contractExpiration: "2027-06-30" },
-  { clubId: 1255, playerName: "Declan Rice", seasonName: "2024/2025", fairPrice: 110001138, contractExpiration: "2028-06-30" },
-  { clubId: 2263, playerName: "Alexander Isak", seasonName: "2024/2025", fairPrice: 113735366, contractExpiration: "2028-06-30" },
-  { clubId: 1255, playerName: "Martin Ødegaard", seasonName: "2024/2025", fairPrice: 96485573, contractExpiration: "2028-06-30" },
-  { clubId: 1255, playerName: "William Saliba", seasonName: "2024/2025", fairPrice: 79009240, contractExpiration: "2027-06-30" },
-  { clubId: 1255, playerName: "Gabriel Martinelli", seasonName: "2024/2025", fairPrice: 61752995, contractExpiration: "2027-06-30" },
-  { clubId: 1255, playerName: "Gabriel Magalhães", seasonName: "2024/2025", fairPrice: 59161995, contractExpiration: "2027-06-30" },
-  { clubId: 1255, playerName: "Jurrien Timber", seasonName: "2024/2025", fairPrice: 58887071, contractExpiration: "2028-06-30" },
-  { clubId: 1255, playerName: "Ben White", seasonName: "2024/2025", fairPrice: 37125854, contractExpiration: "2028-06-30" },
-  { clubId: 1255, playerName: "Leandro Trossard", seasonName: "2024/2025", fairPrice: 29994298, contractExpiration: "2026-06-30" },
-  { clubId: 1255, playerName: "Gabriel Jesus", seasonName: "2024/2025", fairPrice: 27689477, contractExpiration: "2027-06-30" },
+  { playerId: 328209, seasonId: 862, clubId: 2175, playerName: "Erling Haaland", seasonName: "2024/2025", fairPrice: 197384771, contractExpiration: "2034-06-30" },
+  { playerId: 406808, seasonId: 862, clubId: 1570, playerName: "Cole Palmer", seasonName: "2024/2025", fairPrice: 159019479, contractExpiration: "2033-06-30" },
+  { playerId: 385494, seasonId: 862, clubId: 1255, playerName: "Bukayo Saka", seasonName: "2024/2025", fairPrice: 130024906, contractExpiration: "2027-06-30" },
+  { playerId: 342411, seasonId: 862, clubId: 2175, playerName: "Phil Foden", seasonName: "2024/2025", fairPrice: 113740798, contractExpiration: "2027-06-30" },
+  { playerId: 299748, seasonId: 862, clubId: 1255, playerName: "Declan Rice", seasonName: "2024/2025", fairPrice: 110001138, contractExpiration: "2028-06-30" },
+  { playerId: 309541, seasonId: 862, clubId: 2263, playerName: "Alexander Isak", seasonName: "2024/2025", fairPrice: 113735366, contractExpiration: "2028-06-30" },
+  { playerId: 258117, seasonId: 862, clubId: 1255, playerName: "Martin Ødegaard", seasonName: "2024/2025", fairPrice: 96485573, contractExpiration: "2028-06-30" },
+  { playerId: 426448, seasonId: 862, clubId: 1255, playerName: "William Saliba", seasonName: "2024/2025", fairPrice: 79009240, contractExpiration: "2027-06-30" },
+  { playerId: 409931, seasonId: 862, clubId: 1255, playerName: "Gabriel Martinelli", seasonName: "2024/2025", fairPrice: 61752995, contractExpiration: "2027-06-30" },
+  { playerId: 320421, seasonId: 862, clubId: 1255, playerName: "Gabriel Magalhães", seasonName: "2024/2025", fairPrice: 59161995, contractExpiration: "2027-06-30" },
+  { playerId: 365347, seasonId: 862, clubId: 1255, playerName: "Jurrien Timber", seasonName: "2024/2025", fairPrice: 58887071, contractExpiration: "2028-06-30" },
+  { playerId: 341716, seasonId: 862, clubId: 1255, playerName: "Ben White", seasonName: "2024/2025", fairPrice: 37125854, contractExpiration: "2028-06-30" },
+  { playerId: 157546, seasonId: 862, clubId: 1255, playerName: "Leandro Trossard", seasonName: "2024/2025", fairPrice: 29994298, contractExpiration: "2026-06-30" },
+  { playerId: 271857, seasonId: 862, clubId: 1255, playerName: "Gabriel Jesus", seasonName: "2024/2025", fairPrice: 27689477, contractExpiration: "2027-06-30" },
 ]
 
 export const dataAsOf = "2025-05-19"
 export const selectedClub = clubs.find((club) => club.clubName === "Arsenal" && club.seasonName === "2024/2025") ?? clubs[0]
-export const getClubPlayers = (clubId: number, seasonName: string) => players.filter((player) => player.seasonName === seasonName && player.clubId === clubId)
+export const getClubPlayers = (clubId: number, seasonName: string) => players.filter((player) => player.seasonName === seasonName && player.clubId === clubId && playerClubBySourceKey.get(`${player.playerId}:${player.seasonId}`) === clubId)
 export const getTopPlayer = (clubPlayers: PlayerRecord[]) => [...clubPlayers].sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)[0]
 export const getAverageTransferKpi = (clubRecords: ClubRecord[]) => clubRecords.length ? clubRecords.reduce((total, club) => total + club.transferKpi, 0) / clubRecords.length : 0
 export const getContractExpirationsWithinYears = (clubPlayers: PlayerRecord[], seasonName: string, years = 2) => {

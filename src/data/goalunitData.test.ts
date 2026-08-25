@@ -20,6 +20,7 @@ import {
   transferKpiDelta,
   transferKpiDeltaPercent,
 } from "./goalunitData";
+import { playerClubAssignments } from "./playerClubMap";
 
 describe("Goalunit frontend data layer", () => {
   it("filters the player view to the selected club and season", () => {
@@ -27,6 +28,11 @@ describe("Goalunit frontend data layer", () => {
     expect(selectedSeasonPlayers.every((player) => player.clubId === selectedClub.clubId)).toBe(true);
     expect(selectedSeasonPlayers.every((player) => player.seasonName === selectedClub.seasonName)).toBe(true);
     expect(selectedSeasonPlayers.some((player) => player.playerName === "Erling Haaland")).toBe(false);
+  });
+
+  it("keeps every curated player relationship keyed to a source record", () => {
+    expect(playerClubAssignments).toHaveLength(15);
+    expect(selectedSeasonPlayers.every((player) => playerClubAssignments.some((assignment) => assignment.playerId === player.playerId && assignment.seasonId === player.seasonId && assignment.clubId === player.clubId))).toBe(true);
   });
 
   it("identifies the highest-value player in the selected squad", () => {
