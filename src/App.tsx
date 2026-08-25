@@ -21,12 +21,32 @@ import { TransferKpiChart } from "./components/TransferKpiChart";
 
 function App() {
   const defaultOverview = getDefaultClubOverview();
-  const [selectedClubId, setSelectedClubId] = useState(
-    defaultOverview.club.clubId,
+
+  // Slug to club ID mapping
+  const slugToId: Record<string, number> = {
+    arsenal: 1255,
+    liverpool: 2121,
+    "manchester-city": 2175,
+    "manchester-united": 2188,
+  };
+  const idToSlug: Record<number, string> = Object.fromEntries(
+    Object.entries(slugToId).map(([slug, id]) => [id, slug]),
   );
-  const [selectedSeason, setSelectedSeason] = useState(
-    defaultOverview.club.seasonName,
-  );
+
+  // Initialize from URL parameters or defaults
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlClubSlug = urlParams.get("club");
+  const urlSeason = urlParams.get("season");
+
+  const [selectedClubId, setSelectedClubId] = useState(() => {
+    if (urlClubSlug && slugToId[urlClubSlug]) return slugToId[urlClubSlug];
+    return defaultOverview.club.clubId;
+  });
+  const [selectedSeason, setSelectedSeason] = useState(() => {
+    return urlSeason && urlSeason.includes("-")
+      ? urlSeason.replace(/-/g, "/")
+      : defaultOverview.club.seasonName;
+  });
   const [showAllPlayers, setShowAllPlayers] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [overview, setOverview] = useState(defaultOverview);
@@ -58,6 +78,19 @@ function App() {
     yearOverYearKpi,
   } = overview;
   const seasons = getAvailableSeasons();
+
+  // Sync selections to URL query parameters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    const clubSlug =
+      idToSlug[activeClub.clubId] ||
+      activeClub.clubName.toLowerCase().replace(/\s+/g, "-");
+    const seasonSlug = selectedSeason.replace(/\//g, "-");
+    params.set("club", clubSlug);
+    params.set("season", seasonSlug);
+    const newUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
+    window.history.replaceState({}, "", newUrl);
+  }, [activeClub.clubId, selectedSeason]);
 
   const handleSeasonChange = (seasonName: string) => {
     setSelectedSeason(seasonName);
