@@ -55,3 +55,17 @@ export const getClubOverview = (clubId: number, seasonName: string): ClubOvervie
 }
 
 export const getDefaultClubOverview = () => getClubOverview(1255, "2024/2025")
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "/api"
+
+export const fetchClubOverview = async (clubId: number, seasonName: string): Promise<ClubOverview> => {
+  const response = await fetch(`${apiBaseUrl}/club-overview?clubId=${clubId}&season=${encodeURIComponent(seasonName)}`)
+  if (!response.ok) throw new Error(`Goalunit API returned ${response.status}`)
+  const overview = await response.json() as ClubOverview
+  return {
+    ...overview,
+    seasonClubs: overview.seasonClubs ?? [],
+    players: overview.players ?? [],
+    expiringPlayers: overview.expiringPlayers ?? [],
+  }
+}

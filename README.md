@@ -61,6 +61,8 @@ The original CSV files are not loaded directly by the browser. In a production v
 
 The React application reads through [`src/data/goalunitRepository.ts`](src/data/goalunitRepository.ts), which provides the API-shaped `getClubOverview()` function and selector helpers. The repository currently uses local TypeScript data, but it is designed to be replaced by a Go/PostgreSQL service without changing the dashboard components.
 
+The repository is now API-first: it requests the Go service at `/api/club-overview` and falls back to the local typed dataset when the API is unavailable. During local development, Vite proxies `/api` to `http://localhost:8080`. See [`backend/README.md`](backend/README.md) for PostgreSQL setup.
+
 `getClubOverview()` returns the selected club, season comparison records, player rankings, contract-risk records, financial ratios, year-over-year KPI movement, and the generated insight in one view model.
 
 To regenerate a typed dataset from the supplied files:
@@ -85,6 +87,11 @@ src/
     goalunitData.test.ts
     goalunitRepository.ts
     goalunitRepository.test.ts
+backend/
+  main.go
+  queries.go
+  schema.sql
+  README.md
 scripts/
   prepare_data.py
 tests/

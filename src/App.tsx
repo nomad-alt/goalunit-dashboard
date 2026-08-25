@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import {
   dataAsOf,
@@ -7,6 +7,7 @@ import {
   getAvailableSeasons,
   getClubOverview,
   getDefaultClubOverview,
+  fetchClubOverview,
 } from "./data/goalunitRepository";
 import { ContractRiskTable } from "./components/ContractRiskTable";
 import { PlayerValueTable } from "./components/PlayerValueTable";
@@ -22,7 +23,14 @@ function App() {
   );
   const [showAllPlayers, setShowAllPlayers] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const overview = getClubOverview(selectedClubId, selectedSeason);
+  const [overview, setOverview] = useState(defaultOverview);
+  useEffect(() => {
+    let current = true;
+    fetchClubOverview(selectedClubId, selectedSeason)
+      .then((remoteOverview) => { if (current) setOverview(remoteOverview); })
+      .catch(() => { if (current) setOverview(getClubOverview(selectedClubId, selectedSeason)); });
+    return () => { current = false; };
+  }, [selectedClubId, selectedSeason]);
   const {
     club: activeClub,
     seasonClubs,
