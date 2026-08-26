@@ -102,7 +102,10 @@ INSERT INTO
         season_name,
         player_name,
         fair_price,
-        contract_expiration
+        contract_expiration,
+        age,
+        position,
+        nationality
     )
 VALUES (
         328209,
@@ -110,15 +113,10 @@ VALUES (
         '2024/2025',
         'Erling Haaland',
         197384771,
-        '2034-06-30'
-    ),
-    (
-        406808,
-        862,
-        '2024/2025',
-        'Cole Palmer',
-        159019479,
-        '2033-06-30'
+        '2034-06-30',
+        24,
+        'Centre-forward',
+        'Norway'
     ),
     (
         385494,
@@ -126,7 +124,10 @@ VALUES (
         '2024/2025',
         'Bukayo Saka',
         130024906,
-        '2027-06-30'
+        '2027-06-30',
+        24,
+        'Right winger',
+        'England'
     ),
     (
         342411,
@@ -134,7 +135,10 @@ VALUES (
         '2024/2025',
         'Phil Foden',
         113740798,
-        '2027-06-30'
+        '2027-06-30',
+        25,
+        'Attacking midfielder',
+        'England'
     ),
     (
         299748,
@@ -142,15 +146,10 @@ VALUES (
         '2024/2025',
         'Declan Rice',
         110001138,
-        '2028-06-30'
-    ),
-    (
-        309541,
-        862,
-        '2024/2025',
-        'Alexander Isak',
-        113735366,
-        '2028-06-30'
+        '2028-06-30',
+        26,
+        'Defensive midfielder',
+        'England'
     ),
     (
         258117,
@@ -158,7 +157,10 @@ VALUES (
         '2024/2025',
         'Martin Ødegaard',
         96485573,
-        '2028-06-30'
+        '2028-06-30',
+        26,
+        'Attacking midfielder',
+        'Norway'
     ),
     (
         426448,
@@ -166,7 +168,10 @@ VALUES (
         '2024/2025',
         'William Saliba',
         79009240,
-        '2027-06-30'
+        '2027-06-30',
+        24,
+        'Centre-back',
+        'France'
     ),
     (
         409931,
@@ -174,7 +179,10 @@ VALUES (
         '2024/2025',
         'Gabriel Martinelli',
         61752995,
-        '2027-06-30'
+        '2027-06-30',
+        24,
+        'Left winger',
+        'Brazil'
     ),
     (
         320421,
@@ -182,7 +190,10 @@ VALUES (
         '2024/2025',
         'Gabriel Magalhães',
         59161995,
-        '2027-06-30'
+        '2027-06-30',
+        27,
+        'Centre-back',
+        'Brazil'
     ),
     (
         365347,
@@ -190,7 +201,10 @@ VALUES (
         '2024/2025',
         'Jurrien Timber',
         58887071,
-        '2028-06-30'
+        '2028-06-30',
+        24,
+        'Right-back',
+        'Netherlands'
     ),
     (
         341716,
@@ -198,7 +212,10 @@ VALUES (
         '2024/2025',
         'Ben White',
         37125854,
-        '2028-06-30'
+        '2028-06-30',
+        27,
+        'Right-back',
+        'England'
     ),
     (
         157546,
@@ -206,7 +223,10 @@ VALUES (
         '2024/2025',
         'Leandro Trossard',
         29994298,
-        '2026-06-30'
+        '2026-06-30',
+        30,
+        'Left winger',
+        'Belgium'
     ),
     (
         271857,
@@ -214,12 +234,18 @@ VALUES (
         '2024/2025',
         'Gabriel Jesus',
         27689477,
-        '2027-06-30'
+        '2027-06-30',
+        28,
+        'Centre-forward',
+        'Brazil'
     ) ON CONFLICT (player_id, season_id) DO
 UPDATE
 SET
     fair_price = EXCLUDED.fair_price,
-    contract_expiration = EXCLUDED.contract_expiration;
+    contract_expiration = EXCLUDED.contract_expiration,
+    age = EXCLUDED.age,
+    position = EXCLUDED.position,
+    nationality = EXCLUDED.nationality;
 
 INSERT INTO
     player_club_assignments (
@@ -235,12 +261,6 @@ VALUES (
         2175
     ),
     (
-        406808,
-        862,
-        '2024/2025',
-        1570
-    ),
-    (
         385494,
         862,
         '2024/2025',
@@ -257,12 +277,6 @@ VALUES (
         862,
         '2024/2025',
         1255
-    ),
-    (
-        309541,
-        862,
-        '2024/2025',
-        2263
     ),
     (
         258117,

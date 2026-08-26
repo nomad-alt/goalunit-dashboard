@@ -1,4 +1,4 @@
-module github.com/yourname/goalunit-dashboard-v2/backend
+module github.com/nomad-alt/goalunit-dashboard/backend
 
 go 1.22
 

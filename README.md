@@ -56,9 +56,9 @@ flowchart LR
   end
 ```
 
-The React components depend on [`src/data/goalunitRepository.ts`](src/data/goalunitRepository.ts), rather than importing transport details directly. The repository requests `/api/club-overview` and normalizes the response to a single `ClubOverview` model. If the service is unavailable, it returns the equivalent view from local TypeScript data.
+The React components depend on [`src/data/goalunitRepository.ts`](src/data/goalunitRepository.ts), rather than importing transport details directly. The repository requests `/api/clubs/:clubId/overview` and normalizes the response to a single `ClubOverview` model. If the service is unavailable, it returns the equivalent view from local TypeScript data. The Go service also exposes filterable club, player, and contract-risk collections.
 
-The backend prototype in [`backend/`](backend/) already includes a Go HTTP service, PostgreSQL schema, seed data, and overview query. During local development, Vite proxies `/api` to `http://localhost:8080`.
+The backend in [`backend/`](backend/) includes a Go HTTP service, PostgreSQL schema, seed data, resource handlers, and derived overview query. During local development, Vite proxies `/api` to `http://localhost:8080`.
 
 ## Dataset methodology
 
@@ -143,7 +143,7 @@ Planned improvements include authoritative player-club-season relationships, dat
 - CSS and inline SVG visualizations
 - Vitest, Testing Library, and jsdom
 - Python CSV preparation and validation
-- Go HTTP API prototype
+- Go HTTP API
 - PostgreSQL schema and seed data
 - GitHub Actions CI
 
@@ -176,7 +176,7 @@ npm run build
 npm run lint
 ```
 
-The test command runs the Python preparation tests and the Vitest data/component suites. The GitHub Actions workflow runs clean installation, tests, production build, and linting for every push and pull request.
+The test command runs the Python preparation tests, the Vitest data/component suites, and the Go API handler tests. The GitHub Actions workflow runs clean installation, tests, production build, and linting for every push and pull request.
 
 ## Project structure
 
