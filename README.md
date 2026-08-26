@@ -158,6 +158,11 @@ npm run dev
 
 The application is available at the local URL shown by Vite, usually `http://localhost:5173`.
 
+Development builds use `VITE_API_BASE_URL=/api`, which Vite proxies to the Go
+service on port 8080. Production builds leave this variable unset and use the
+bundled dataset without making a failing API request. Set `VITE_API_BASE_URL` in
+the deployment environment only when a reachable Go API has also been deployed.
+
 To regenerate the typed dataset from CSV files:
 
 ```bash

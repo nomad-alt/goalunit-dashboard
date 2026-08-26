@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { getAvailableClubs, getAvailableSeasons, getClubOverview } from "./goalunitRepository";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { getAvailableClubs, getAvailableSeasons, getClubOverview, getOverviewWithFallback } from "./goalunitRepository";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 describe("Goalunit repository", () => {
   it("returns the selected club overview with derived values", () => {
@@ -21,5 +26,15 @@ describe("Goalunit repository", () => {
     const overview = getClubOverview(9999, "2024/2025");
 
     expect(overview.club.clubName).toBe("Arsenal");
+  });
+
+  it("uses local data without requesting an API when none is configured", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "");
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    const overview = await getOverviewWithFallback(1255, "2024/2025");
+
+    expect(overview.club.clubName).toBe("Arsenal");
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
