@@ -30,8 +30,8 @@ describe("Goalunit frontend data layer", () => {
     expect(selectedSeasonPlayers.some((player) => player.playerName === "Erling Haaland")).toBe(false);
   });
 
-  it("keeps every curated player relationship keyed to a source record", () => {
-    expect(playerClubAssignments).toHaveLength(15);
+  it("uses event-derived player relationships keyed to source records", () => {
+    expect(playerClubAssignments.length).toBeGreaterThan(1000);
     expect(selectedSeasonPlayers.every((player) => playerClubAssignments.some((assignment) => assignment.playerId === player.playerId && assignment.seasonId === player.seasonId && assignment.clubId === player.clubId))).toBe(true);
   });
 

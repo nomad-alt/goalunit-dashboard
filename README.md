@@ -22,6 +22,7 @@ _Season movement, financial structure, player-value distribution, and contract-e
 - Highlights contracts expiring within two years of the selected season.
 - Compares revenue with total assets and shows year-over-year KPI movement.
 - Generates concise findings about performance, value concentration, and contract exposure.
+- Summarizes passing, completion, shooting, xG, territorial possession value, duels, and recoveries from 2.25 million events.
 - Reads from a Go API when available and falls back to the local typed dataset.
 
 ## Example analytical findings
@@ -44,6 +45,10 @@ flowchart LR
     PY --> VALIDATE[Schema and quality validation]
     VALIDATE --> TS[Generated TypeScript dataset]
     VALIDATE --> DBSEED[PostgreSQL seed data]
+    EVENTS[Large events.csv] --> EVENTPIPE[Streaming event preparation]
+    EVENTPIPE --> SUMMARY[Compact club-season summaries]
+    EVENTPIPE --> ASSIGN[Player-club assignments]
+    EVENTS --> EVENTDB[(PostgreSQL events)]
   end
 
   subgraph application[Application]
@@ -51,6 +56,9 @@ flowchart LR
     REPO -->|API first| API[Go HTTP API]
     API --> PG[(PostgreSQL)]
     REPO -->|development fallback| LOCAL[Curated local dataset]
+    SUMMARY -.-> LOCAL
+    ASSIGN -.-> LOCAL
+    API --> EVENTDB
     TS -.-> LOCAL
     DBSEED -.-> PG
   end
@@ -64,10 +72,11 @@ The backend in [`backend/`](backend/) includes a Go HTTP service, PostgreSQL sch
 
 ### Source and scope
 
-The repository includes two Goalunit-style source exports:
+The repository includes two Goalunit-style source exports and consumes one external event export:
 
 - [`src/data/clubs.csv`](src/data/clubs.csv): 40 club-season records across `2023/2024` and `2024/2025`.
 - [`src/data/players.csv`](src/data/players.csv): 1,148 raw player snapshots across the same two seasons.
+- `events.csv`: 2,249,813 event rows across 760 matches. The 1.6 GB source stays outside Git; only its 40 club-season summaries and 1,126 player assignments are committed.
 
 The visible dashboard is intentionally smaller than the source exports. Its curated local model contains four comparison clubs across two seasons and a selected player sample suitable for demonstrating the analytical interactions.
 
@@ -83,7 +92,7 @@ The visible dashboard is intentionally smaller than the source exports. Its cura
 6. Sort prepared players by fair price before generating TypeScript.
 7. Validate the complete prepared collection before writing any output.
 
-The supplied player export does not contain `clubId`. [`src/data/playerClubMap.ts`](src/data/playerClubMap.ts) therefore provides an explicit `playerId + seasonId` assignment for the curated dashboard sample. This avoids inferring club membership from player names.
+The supplied player export does not contain `clubId`. [`scripts/prepare_events.py`](scripts/prepare_events.py) derives the latest observed `playerId + seasonId → clubId` relationship from event records. [`src/data/playerClubMap.ts`](src/data/playerClubMap.ts) consumes that generated mapping instead of maintaining relationships by hand.
 
 ### Validation contract
 
@@ -106,17 +115,21 @@ Validation errors are aggregated so a failed preparation run reports every disco
 - **Revenue-to-assets ratio:** `total revenues / total assets × 100`.
 - **Fair-price concentration:** top-three player fair prices divided by total squad-sample fair price.
 - **Contract risk:** players whose contract year is no later than two years after the selected season end.
+- **Pass completion:** successful plus neutral passes divided by all successful, neutral, and unsuccessful passes.
+- **Expected goals:** sum of the supplied `SHOT_XG` event values.
+- **Possession value:** positive adjusted-pitch progression from completed passes and dribbles, divided by matches. The supplied `pxTTeam` field is empty, so this is presented as territorial metres rather than xT.
+- **Duels and recoveries:** sums of supplied ground/aerial duel wins and `BALL_WIN_NUMBER` indicators.
 
 ## Known limitations
 
 - The data is a static portfolio snapshot dated **2025-05-19**, not a live Goalunit feed.
 - The dashboard uses a deliberately small club and player sample; findings are illustrative rather than comprehensive.
-- Player-to-club assignments are manually curated because the player CSV lacks a club identifier.
+- Event-derived assignments select the club from a player's latest observed match in each season; mid-season movement is reduced to one season-level assignment.
 - Fair price is treated as a supplied estimate; this project does not reproduce or audit its underlying valuation model.
 - Contract risk uses season-end years rather than a precise rolling date calculation.
 - Currency is presented consistently in the interface, but the source export does not provide a per-record currency field.
 - The local fallback and database seed must currently be kept in sync manually.
-- Authentication, authorization, pagination, caching, observability, and production API rate controls are outside the prototype scope.
+- Authentication, authorization, caching, observability, and production API rate controls remain outside the prototype scope.
 
 ## Future Go/PostgreSQL architecture
 
@@ -134,7 +147,7 @@ flowchart LR
   GO --> OBS[Logs, metrics, traces]
 ```
 
-Planned improvements include authoritative player-club-season relationships, database constraints matching the preparation validator, versioned API contracts, server-side filtering and pagination, scheduled ingestion, data-quality reporting, and deployment health checks.
+Planned improvements include versioned API contracts, scheduled ingestion, richer possession-value modelling, data-quality reporting, and deployment health checks.
 
 ## Tech stack
 
@@ -173,6 +186,16 @@ npm run prepare:data -- \
 
 This writes `src/data/goalunitData.generated.ts`. See [`backend/README.md`](backend/README.md) for PostgreSQL and Go service setup.
 
+To regenerate the compact event summaries and player-club assignments without
+loading the 1.6 GB source into memory:
+
+```bash
+npm run prepare:events -- --events /path/to/events.csv
+```
+
+This writes the committed `src/data/eventData.generated.ts` artifact. Raw event
+rows are not included in the frontend bundle.
+
 ## Quality checks
 
 ```bash
@@ -188,7 +211,8 @@ The test command runs the Python preparation tests, the Vitest data/component su
 ```text
 backend/                 Go API, SQL schema, queries, and seed data
 docs/screenshots/        Portfolio screenshots
-scripts/prepare_data.py  CSV preparation and validation
+scripts/prepare_data.py  Club/player preparation and validation
+scripts/prepare_events.py Streaming event summaries and assignments
 src/components/          Dashboard tables, charts, and search UI
 src/data/                Source CSVs, typed data, mappings, and repository
 src/App.tsx              Dashboard composition and interactions

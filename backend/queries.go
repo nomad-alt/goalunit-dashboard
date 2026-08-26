@@ -55,6 +55,61 @@ func (store postgresStore) contractRisks(ctx context.Context, filter contractRis
 	return scanPlayers(rows)
 }
 
+func (store postgresStore) events(ctx context.Context, filter eventFilter) ([]eventRecord, error) {
+	query := `SELECT event_id, match_id, season_id, season_name, date_utc::text, club_id,
+		player_id, player_name, event_number, sequence_index, period_id, game_time_seconds,
+		action_type, action, result, start_x, start_y, end_x, end_y, shot_xg,
+		pass_receiver_player_id, pass_receiver_name
+		FROM events WHERE 1 = 1`
+	args := []any{}
+	appendFilter := func(condition string, value any) {
+		args = append(args, value)
+		query += fmt.Sprintf(" AND "+condition, len(args))
+	}
+	if filter.ClubID != nil {
+		appendFilter("club_id = $%d", *filter.ClubID)
+	}
+	if filter.MatchID != nil {
+		appendFilter("match_id = $%d", *filter.MatchID)
+	}
+	if filter.PlayerID != nil {
+		appendFilter("player_id = $%d", *filter.PlayerID)
+	}
+	if filter.Season != "" {
+		appendFilter("season_name = $%d", filter.Season)
+	}
+	if filter.ActionType != "" {
+		appendFilter("action_type = $%d", filter.ActionType)
+	}
+	if filter.BeforeEventID != nil {
+		appendFilter("event_id < $%d", *filter.BeforeEventID)
+	}
+	args = append(args, filter.Limit)
+	query += fmt.Sprintf(" ORDER BY event_id DESC LIMIT $%d", len(args))
+
+	rows, err := store.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := []eventRecord{}
+	for rows.Next() {
+		var record eventRecord
+		if err := rows.Scan(
+			&record.EventID, &record.MatchID, &record.SeasonID, &record.SeasonName,
+			&record.DateUTC, &record.ClubID, &record.PlayerID, &record.PlayerName,
+			&record.EventNumber, &record.SequenceIndex, &record.PeriodID, &record.GameTimeSeconds,
+			&record.ActionType, &record.Action, &record.Result, &record.StartX, &record.StartY,
+			&record.EndX, &record.EndY, &record.ShotXG, &record.PassReceiverPlayerID,
+			&record.PassReceiverName,
+		); err != nil {
+			return nil, err
+		}
+		result = append(result, record)
+	}
+	return result, rows.Err()
+}
+
 func filteredPlayerQuery(filter playerFilter) (string, []any) {
 	query := `SELECT ` + playerColumns + `
 		FROM players p

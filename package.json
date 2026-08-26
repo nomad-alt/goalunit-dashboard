@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "prepare:data": "python3 scripts/prepare_data.py",
+    "prepare:events": "python3 scripts/prepare_events.py",
     "test": "python3 -m unittest discover -s tests -v && vitest run && npm run test:backend",
     "test:backend": "cd backend && go test ./...",
     "preview": "vite preview"

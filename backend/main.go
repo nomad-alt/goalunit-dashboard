@@ -63,10 +63,46 @@ type contractRiskFilter struct {
 	Years int
 }
 
+type eventRecord struct {
+	EventID              int64    `json:"eventId"`
+	MatchID              int      `json:"matchId"`
+	SeasonID             int      `json:"seasonId"`
+	SeasonName           string   `json:"seasonName"`
+	DateUTC              string   `json:"dateUtc"`
+	ClubID               int      `json:"clubId"`
+	PlayerID             int      `json:"playerId"`
+	PlayerName           string   `json:"playerName"`
+	EventNumber          int      `json:"eventNumber"`
+	SequenceIndex        int      `json:"sequenceIndex"`
+	PeriodID             int      `json:"periodId"`
+	GameTimeSeconds      float64  `json:"gameTimeSeconds"`
+	ActionType           string   `json:"actionType"`
+	Action               string   `json:"action"`
+	Result               string   `json:"result"`
+	StartX               *float64 `json:"startX"`
+	StartY               *float64 `json:"startY"`
+	EndX                 *float64 `json:"endX"`
+	EndY                 *float64 `json:"endY"`
+	ShotXG               *float64 `json:"shotXg"`
+	PassReceiverPlayerID *int     `json:"passReceiverPlayerId"`
+	PassReceiverName     string   `json:"passReceiverName"`
+}
+
+type eventFilter struct {
+	ClubID        *int
+	MatchID       *int
+	PlayerID      *int
+	Season        string
+	ActionType    string
+	BeforeEventID *int64
+	Limit         int
+}
+
 type dataStore interface {
 	clubs(context.Context, string) ([]club, error)
 	players(context.Context, playerFilter) ([]player, error)
 	contractRisks(context.Context, contractRiskFilter) ([]player, error)
+	events(context.Context, eventFilter) ([]eventRecord, error)
 	overview(context.Context, int, string) (clubOverview, error)
 }
 
@@ -84,7 +120,8 @@ func (s server) routes() http.Handler {
 	mux.HandleFunc("GET /api/clubs/{clubId}/overview", s.clubOverview)
 	mux.HandleFunc("GET /api/players", s.listPlayers)
 	mux.HandleFunc("GET /api/contract-risks", s.listContractRisks)
-	return mux
+	mux.HandleFunc("GET /api/events", s.listEvents)
+	return cors(mux, os.Getenv("ALLOWED_ORIGINS"))
 }
 
 func (s server) listClubs(w http.ResponseWriter, r *http.Request) {
@@ -158,6 +195,94 @@ func (s server) listContractRisks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, risks)
+}
+
+func (s server) listEvents(w http.ResponseWriter, r *http.Request) {
+	filter := eventFilter{
+		Season:     strings.TrimSpace(r.URL.Query().Get("season")),
+		ActionType: strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("actionType"))),
+		Limit:      100,
+	}
+	if filter.Season != "" && !validSeason(filter.Season) {
+		writeError(w, http.StatusBadRequest, "season must use YYYY/YYYY format")
+		return
+	}
+	var ok bool
+	if filter.ClubID, ok = optionalPositiveInt(w, r.URL.Query().Get("clubId"), "clubId"); !ok {
+		return
+	}
+	if filter.MatchID, ok = optionalPositiveInt(w, r.URL.Query().Get("matchId"), "matchId"); !ok {
+		return
+	}
+	if filter.PlayerID, ok = optionalPositiveInt(w, r.URL.Query().Get("playerId"), "playerId"); !ok {
+		return
+	}
+	if filter.ClubID == nil && filter.MatchID == nil && filter.PlayerID == nil {
+		writeError(w, http.StatusBadRequest, "one of clubId, matchId, or playerId is required")
+		return
+	}
+	if raw := r.URL.Query().Get("limit"); raw != "" {
+		limit, err := positiveInt(raw)
+		if err != nil || limit > 500 {
+			writeError(w, http.StatusBadRequest, "limit must be between 1 and 500")
+			return
+		}
+		filter.Limit = limit
+	}
+	if raw := r.URL.Query().Get("beforeEventId"); raw != "" {
+		value, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil || value <= 0 {
+			writeError(w, http.StatusBadRequest, "beforeEventId must be a positive integer")
+			return
+		}
+		filter.BeforeEventID = &value
+	}
+
+	events, err := s.store.events(r.Context(), filter)
+	if err != nil {
+		s.internalError(w, "list events", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, events)
+}
+
+func optionalPositiveInt(w http.ResponseWriter, raw, field string) (*int, bool) {
+	if raw == "" {
+		return nil, true
+	}
+	value, err := positiveInt(raw)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, field+" must be a positive integer")
+		return nil, false
+	}
+	return &value, true
+}
+
+func cors(next http.Handler, configuredOrigins string) http.Handler {
+	allowed := map[string]bool{}
+	for _, origin := range strings.Split(configuredOrigins, ",") {
+		if origin = strings.TrimSpace(origin); origin != "" {
+			allowed[origin] = true
+		}
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if origin != "" && allowed[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		}
+		if r.Method == http.MethodOptions {
+			if origin == "" || !allowed[origin] {
+				writeError(w, http.StatusForbidden, "origin is not allowed")
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func parsePlayerFilter(w http.ResponseWriter, r *http.Request) (playerFilter, bool) {

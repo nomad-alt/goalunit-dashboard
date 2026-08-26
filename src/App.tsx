@@ -18,6 +18,8 @@ import { PlayerSearchPanel } from "./components/PlayerSearchPanel";
 import { PlayerValueTable } from "./components/PlayerValueTable";
 import { RevenueAssetsChart } from "./components/RevenueAssetsChart";
 import { TransferKpiChart } from "./components/TransferKpiChart";
+import { PlayingStyleKpis } from "./components/PlayingStyleKpis";
+import { eventRowCount, eventsDataAsOf, getClubPlayingStyleSummary } from "./data/eventData";
 
 const slugToId: Record<string, number> = {
   arsenal: 1255,
@@ -78,6 +80,10 @@ function App() {
     yearOverYearKpi,
   } = overview;
   const seasons = getAvailableSeasons();
+  const playingStyleSummary = getClubPlayingStyleSummary(
+    activeClub.clubId,
+    activeClub.seasonName,
+  );
 
   // Sync selections to URL query parameters
   useEffect(() => {
@@ -249,6 +255,24 @@ function App() {
                   : `${yearOverYearKpi >= 0 ? "+" : ""}${yearOverYearKpi.toFixed(1)} YoY`}
               </span>
             </div>
+          </article>
+        </section>
+
+        <section className="playing-style-section" aria-label="Club playing style">
+          <article className="panel playing-style-panel">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">Event intelligence</p>
+                <h2>Club playing style</h2>
+              </div>
+              <span className="panel-note">
+                {playingStyleSummary?.matches ?? 0} matches · {eventRowCount.toLocaleString("en-GB")} events
+              </span>
+            </div>
+            <PlayingStyleKpis summary={playingStyleSummary} />
+            <p className="playing-style-source">
+              Event data through {eventsDataAsOf}. Possession value measures positive territorial progression from completed passes and dribbles.
+            </p>
           </article>
         </section>
 

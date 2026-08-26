@@ -40,3 +40,38 @@ CREATE TABLE IF NOT EXISTS player_club_assignments (
   FOREIGN KEY (player_id, season_id) REFERENCES players (player_id, season_id),
   FOREIGN KEY (club_id, season_name) REFERENCES clubs (club_id, season_name)
 );
+
+CREATE TABLE IF NOT EXISTS events (
+  event_id BIGINT PRIMARY KEY,
+  match_id INTEGER NOT NULL,
+  competition_id INTEGER NOT NULL,
+  season_id INTEGER NOT NULL,
+  season_name TEXT NOT NULL,
+  date_utc TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+  club_id INTEGER NOT NULL,
+  player_id INTEGER NOT NULL,
+  player_name TEXT NOT NULL,
+  event_number INTEGER NOT NULL,
+  sequence_index INTEGER NOT NULL,
+  period_id INTEGER NOT NULL,
+  game_time_seconds DOUBLE PRECISION NOT NULL,
+  action_type TEXT NOT NULL,
+  action TEXT NOT NULL,
+  result TEXT NOT NULL,
+  start_x DOUBLE PRECISION,
+  start_y DOUBLE PRECISION,
+  end_x DOUBLE PRECISION,
+  end_y DOUBLE PRECISION,
+  shot_xg DOUBLE PRECISION,
+  pass_receiver_player_id INTEGER,
+  pass_receiver_name TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS events_club_season_idx
+  ON events (club_id, season_id, event_id DESC);
+CREATE INDEX IF NOT EXISTS events_match_idx
+  ON events (match_id, event_number);
+CREATE INDEX IF NOT EXISTS events_player_season_idx
+  ON events (player_id, season_id, event_id DESC);
+CREATE INDEX IF NOT EXISTS events_action_type_idx
+  ON events (action_type, event_id DESC);

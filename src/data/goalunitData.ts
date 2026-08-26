@@ -54,7 +54,9 @@ export const players: PlayerRecord[] = [
 
 export const dataAsOf = "2025-05-19"
 export const selectedClub = clubs.find((club) => club.clubName === "Arsenal" && club.seasonName === "2024/2025") ?? clubs[0]
-export const getClubPlayers = (clubId: number, seasonName: string) => players.filter((player) => player.seasonName === seasonName && player.clubId === clubId && playerClubBySourceKey.get(`${player.playerId}:${player.seasonId}`) === clubId)
+export const getClubPlayers = (clubId: number, seasonName: string) => players
+  .filter((player) => player.seasonName === seasonName && playerClubBySourceKey.get(`${player.playerId}:${player.seasonId}`) === clubId)
+  .map((player) => ({ ...player, clubId }))
 export const getTopPlayer = (clubPlayers: PlayerRecord[]) => [...clubPlayers].sort((firstPlayer, secondPlayer) => secondPlayer.fairPrice - firstPlayer.fairPrice)[0]
 export const getAverageTransferKpi = (clubRecords: ClubRecord[]) => clubRecords.length ? clubRecords.reduce((total, club) => total + club.transferKpi, 0) / clubRecords.length : 0
 export const getContractExpirationsWithinYears = (clubPlayers: PlayerRecord[], seasonName: string, years = 2) => {

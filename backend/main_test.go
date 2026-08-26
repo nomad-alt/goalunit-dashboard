@@ -17,6 +17,7 @@ type fakeStore struct {
 	clubSeason    string
 	playerFilter  playerFilter
 	riskFilter    contractRiskFilter
+	eventFilter   eventFilter
 }
 
 func (store *fakeStore) clubs(_ context.Context, season string) ([]club, error) {
@@ -32,6 +33,11 @@ func (store *fakeStore) players(_ context.Context, filter playerFilter) ([]playe
 func (store *fakeStore) contractRisks(_ context.Context, filter contractRiskFilter) ([]player, error) {
 	store.riskFilter = filter
 	return store.playerRecords, nil
+}
+
+func (store *fakeStore) events(_ context.Context, filter eventFilter) ([]eventRecord, error) {
+	store.eventFilter = filter
+	return []eventRecord{{EventID: 1, MatchID: 10, ClubID: 1255, ActionType: "SHOT"}}, nil
 }
 
 func (store *fakeStore) overview(_ context.Context, _ int, _ string) (clubOverview, error) {
@@ -56,6 +62,7 @@ func TestRequestedEndpoints(t *testing.T) {
 		{name: "overview", url: "/api/clubs/1255/overview?season=2024%2F2025"},
 		{name: "players", url: "/api/players?clubId=1255&season=2024%2F2025"},
 		{name: "contract risks", url: "/api/contract-risks?clubId=1255&season=2024%2F2025"},
+		{name: "events", url: "/api/events?clubId=1255&season=2024%2F2025&actionType=shot"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -78,6 +85,9 @@ func TestRequestedEndpoints(t *testing.T) {
 	}
 	if store.riskFilter.Years != 2 {
 		t.Fatalf("expected default risk window of 2, got %d", store.riskFilter.Years)
+	}
+	if store.eventFilter.ClubID == nil || *store.eventFilter.ClubID != 1255 || store.eventFilter.ActionType != "SHOT" {
+		t.Fatal("events did not receive the expected filters")
 	}
 }
 
@@ -105,12 +115,25 @@ func TestInvalidFilters(t *testing.T) {
 		"/api/clubs/nope/overview?season=2024%2F2025",
 		"/api/players?clubId=-1",
 		"/api/contract-risks?years=11",
+		"/api/events?season=2024%2F2025",
+		"/api/events?clubId=1255&limit=501",
 	} {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, url, nil))
 		if response.Code != http.StatusBadRequest {
 			t.Errorf("%s: expected 400, got %d", url, response.Code)
 		}
+	}
+}
+
+func TestCORSAllowsConfiguredFrontend(t *testing.T) {
+	handler := cors(server{store: &fakeStore{}}.routes(), "https://goalunit-dashboard.vercel.app")
+	request := httptest.NewRequest(http.MethodGet, "/api/clubs", nil)
+	request.Header.Set("Origin", "https://goalunit-dashboard.vercel.app")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if origin := response.Header().Get("Access-Control-Allow-Origin"); origin != "https://goalunit-dashboard.vercel.app" {
+		t.Fatalf("unexpected allowed origin %q", origin)
 	}
 }
 
